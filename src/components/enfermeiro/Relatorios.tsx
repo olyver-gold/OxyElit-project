@@ -10,17 +10,6 @@ function Relatorios() {
     return(
         <div className="relatorios">
             <div className="top-row">
-                <div>
-                    <input
-                        className="busca"
-                        type="text"
-                        placeholder="Buscar relatórios..."
-                    />
-                    <button className="btn-buscar-e">
-                        Buscar
-                    </button>
-                </div>
-
                 <button className="btn-escrever" onClick={() => setModalEscrever(true)}>
                     + Escrever Relatório
                 </button>

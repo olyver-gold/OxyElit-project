@@ -6,6 +6,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { useState } from "react";
 // import { FaCog } from "react-icons/fa";
 import { FaHospitalUser } from "react-icons/fa";
+import { RiDashboardFill } from "react-icons/ri";
+import { FaUserPlus } from "react-icons/fa6";
+import { FaNotesMedical } from "react-icons/fa";
+import { FaFileMedical } from "react-icons/fa6";
 import VisaoGeral from "../components/medico/VisaoGeral";
 import Relatorios from "../components/medico/Relatorios";
 import Prescricoes from "../components/medico/Prescricoes";
@@ -20,6 +24,13 @@ function PageMed() {
         "Prescrições": "Central de prescrições",
         "Relatórios": "Histórico e leitura de relatórios"
     };
+
+    const itensMenuMed = [
+        { label: "Visão geral", icone: <RiDashboardFill /> },
+        { label: "Pacientes", icone: <FaUserPlus /> },
+        { label: "Prescrições", icone: <FaNotesMedical />},
+        { label: "Relatórios", icone: <FaFileMedical /> },
+    ];
 
     const handleSair = async () => {
         try {
@@ -48,13 +59,14 @@ function PageMed() {
                 {/* MENU DE NAVEGAÇÃO */}
                 <div className="menu-med">
                     <ul>
-                        {["Visão geral", "Pacientes", "Prescrições", "Relatórios"].map((item) => (
+                        {itensMenuMed.map((item) => (
                         <li
-                            key={item}
-                            className={paginaAtiva === item ? "menu-item ativo" : "menu-item"}
-                            onClick={() => setPaginaAtiva(item)}
+                            key={item.label}
+                            className={paginaAtiva === item.label ? "menu-item ativo" : "menu-item"}
+                            onClick={() => setPaginaAtiva(item.label)}
                         >
-                            {item}
+                            <span className="menu-icon">{item.icone}</span>
+                            <span className="menu-label">{item.label}</span>
                         </li>
                         ))}
                     </ul>

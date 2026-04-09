@@ -9,40 +9,14 @@
     margin-bottom: 20px;
 }
 
-.busca {
-    padding: 16px;
-    width: 660px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 15px;
-    transition: border-color 0.2s;
-}
-
-.btn-buscar-e {
-    padding: 16px 30px;
-    background: none;
-    color: #0082ec;
-    border: 1px solid #0082ec;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 15px;
-    margin-left: 10px;
-    transition: background 0.2s;
-}
-
-.btn-buscar-e:hover {
-    background: #0082ec;
-    color: white;
-}
-
 .btn-escrever {
-    padding: 16px 30px;
+    padding: 16px 40px;
     background: #0082ec;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 16px;
     transition: background 0.2s;
 }
 

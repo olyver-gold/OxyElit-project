@@ -6,6 +6,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useState } from "react";
 // import { FaCog } from "react-icons/fa";
 import { FaHospitalUser } from "react-icons/fa";
+import { RiDashboardFill } from "react-icons/ri";
+import { TbHeartRateMonitor } from "react-icons/tb";
+import { FaFileMedical } from "react-icons/fa6";
 import VisaoGeral from "../components/enfermeiro/VisaoGeral";
 import Monitoramento from "../components/enfermeiro/Monitoramento";
 import Relatorios from "../components/enfermeiro/Relatorios";
@@ -26,9 +29,16 @@ function PageEnf() {
     const [pacienteSelecionado, setPacienteSelecionado] = useState<DadosPaciente | null>(null);
     const titulosHeader: Record<string, string> = {
         "Visão geral": "Visão Geral: Resumo do plantão",
-        "Moitoramento": "Central de monitoramento em tempo real",
+        "Monitoramento": "Central de monitoramento em tempo real",
         "Relatórios": "Histórico e emissão de relatórios"
     };
+
+    const itensMenuEnf = [
+        { label: "Visão geral", icone: <RiDashboardFill /> },
+        { label: "Monitoramento", icone: <TbHeartRateMonitor />},
+        { label: "Relatórios", icone: <FaFileMedical /> },
+    ];
+
     const handleSair = async () => {
         try {
             await invoke("redimensionar_janela");
@@ -56,13 +66,14 @@ function PageEnf() {
                 {/* MENU DE NAVEGAÇÃO */}
                 <div className="menu-enf">
                     <ul>
-                        {["Visão geral", "Monitoramento", "Relatórios"].map((item) => (
+                        {itensMenuEnf.map((item) => (
                         <li
-                            key={item}
-                            className={paginaAtiva === item ? "menu-item ativo" : "menu-item"}
-                            onClick={() => setPaginaAtiva(item)}
+                            key={item.label}
+                            className={paginaAtiva === item.label ? "menu-item ativo" : "menu-item"}
+                            onClick={() => setPaginaAtiva(item.label)}
                         >
-                            {item}
+                            <span className="menu-icon">{item.icone}</span>
+                            <span className="menu-label">{item.label}</span>
                         </li>
                         ))}
                     </ul>

@@ -116,8 +116,23 @@ body, html {
   color: rgba(255, 255, 255, 0.7);
 }
 
+.menu-item {
+  display: flex;
+  align-items: center; /* Alinha ícone e texto na mesma linha */
+  gap: 12px;           /* Espaço entre o ícone e a palavra */
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-icon {
+  font-size: 1.2rem;   /* Tamanho do ícone */
+  display: flex;
+  align-items: center;
+}
+
 .menu-item.ativo {
-  background: #008da9cc;
+  background: #0049a9cc;
   color: white;
   border-left: 4px solid white;
 }
