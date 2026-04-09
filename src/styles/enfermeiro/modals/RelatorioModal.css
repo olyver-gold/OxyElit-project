@@ -1,0 +1,80 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-relatorio {
+    background-color: white;
+    border-radius: 12px;
+    width: 500px;
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background-color: #0082ec;
+    border-bottom: 0.5px solid #eee;
+}
+
+.modal-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.modal-sub {
+    font-size: 12px;
+    color: white;
+    margin-top: 4px;
+}
+
+.modal-fechar {
+    font-size: 20px;
+    color: #1a1a1a;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-fechar:hover {
+    color: #00e7e7;
+}
+
+.modal-body-relatorio {
+    max-height: 420px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-body-relatorio p {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    padding: 12px 18px;
+    background-color: #f5f5f5;
+    text-align: right;
+}
+
+.btn-cancelar {
+    background: none;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #555;
+}

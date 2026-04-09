@@ -1,0 +1,67 @@
+.relatorios {
+    padding: 20px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.busca {
+    padding: 16px;
+    width: 660px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
+.btn-buscar-e {
+    padding: 16px 30px;
+    background: none;
+    color: #0082ec;
+    border: 1px solid #0082ec;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    margin-left: 10px;
+    transition: background 0.2s;
+}
+
+.btn-buscar-e:hover {
+    background: #0082ec;
+    color: white;
+}
+
+.btn-escrever {
+    padding: 16px 30px;
+    background: #0082ec;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.btn-escrever:hover {
+    background: #0062c4;
+}
+
+.btn-ver {
+    margin-left: 20px;
+    background: white;
+    color: #0082ec;
+    border: 1px solid #0082ec;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition-duration: 0.2s;
+}
+
+.btn-ver:hover {
+    background: #0082ec;
+    color: white;
+}

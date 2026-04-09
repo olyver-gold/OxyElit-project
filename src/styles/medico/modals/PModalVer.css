@@ -1,0 +1,152 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-v {
+    background: white;
+    border-radius: 12px;
+    width: 600px;
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background-color: #0082ec;
+    border-bottom: 0.5px solid #eee;
+}
+
+.modal-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.modal-fechar {
+    font-size: 20px;
+    color: #1a1a1a;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-fechar:hover { color: #00e7e7; }
+
+.modal-body {
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.titulo {
+    font-size: 16px;
+    font-weight: 500;
+    color: #888;
+    margin-bottom: 4px
+}
+
+.dados {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 10px ;
+}
+
+.dados-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: #eee 0.5px solid;
+}
+
+.dados-card {
+    flex: 1;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.dc-title {
+    font-size: 12px;
+    color: #888;
+}
+
+.dc-value {
+    font-size: 14px;
+    color: #1a1a1a;
+    margin-top: 4px;
+}
+
+.dados-prescricao {
+    display: flex;
+    flex-direction: column;
+    border-bottom: #eee 0.5px solid;
+}
+
+.dados-relatorio {
+    display: flex;
+    flex-direction: column;
+}
+
+.prescricao-row, .relatorio-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 0.5px solid #eee;
+}
+
+.prescricao-row:last-child, .relatorio-row:last-child {
+    margin-bottom: 10px;
+    border-bottom: none;
+}
+
+.prescricao-value, .relatorio-nome {
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.prescricao-validade, .relatorio-data {
+    font-size: 12px;
+    color: #888;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #0082ec;
+    color: white;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.tag.ativa { background: #dbf3e1; color: #3B6D11; }
+.tag.expirada { background: #ffdada; color: #A32D2D; }
+
+.modal-footer {
+    padding: 14px 18px;
+    border-top: 0.5px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-nova {
+    background-color: #0082ec;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}

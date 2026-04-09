@@ -1,0 +1,116 @@
+.prescricoes {
+    padding: 20px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.busca {
+    padding: 16px;
+    width: 660px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
+.btn-buscar {
+    padding: 16px 30px;
+    background: none;
+    color: #0082ec;
+    border: 1px solid #0082ec;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    margin-left: 10px;
+    transition: background 0.2s;
+}
+
+.btn-buscar:hover {
+    background: #0082ec;
+    color: white;
+}
+
+.add-presc {
+    padding: 16px 30px;
+    background: #0082ec;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.add-presc:hover {
+    background: #0062c4;
+}
+
+.presc-tabela-wrapper {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    overflow: hidden;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+
+.presc-tabela {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.presc-tabela th {
+    font-size: 13px;
+    font-weight: 500;
+    color: #888;
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid #eee;
+    background: #fafafa;
+}
+
+.presc-tabela td {
+    font-size: 16px;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid #eee;
+}
+
+.presc-tabela tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.presc-tabela tbody tr:hover td {
+    background: #f9f9f9;
+}
+
+.tag {
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tag.t-ok     { background: #dbf3e1; color: #3B6D11; }
+.tag.t-warn   { background: #f8ebd4; color: #854F0B; }
+.tag.t-danger { background: #ffdada; color: #A32D2D; }
+
+.botao-ver {
+    background: none;
+    border: 0.5px solid #0082ec;
+    color: #0082ec;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.botao-ver:hover {
+    background: #0082ec;
+    color: white;
+}
