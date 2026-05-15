@@ -1,0 +1,89 @@
+.pacientes {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.pacientes-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 8%;
+    padding: var(--space-lg);
+    justify-content: space-between;
+    background-color: var(--color-secondary);
+    gap: var(--space-md);
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.pacientes-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.pacientes-header span {
+    font-size: 14px;
+    color: #ffffffcc;
+    margin-top: 2px;
+    display: block;
+}
+
+.pacientes-conteudo {
+    flex: 1;
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    max-width: 1400px;
+    width: 100%;
+    align-self: center;
+    gap: var(--space-lg);
+    overflow-y: auto;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+}
+
+.busca {
+    padding: var(--space-md);
+    width: 600px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.busca:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.pacientes-tabela {
+    background-color: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    max-height: fit-content;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.pacientes-tabela table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pacientes-tabela th, .pacientes-tabela td {
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.nenhum-paciente {
+    text-align: center;
+    padding: var(--space-lg);
+    color: var(--color-secondary);
+}

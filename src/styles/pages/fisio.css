@@ -1,0 +1,153 @@
+.page-fisio {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-background-tertiary, #f0f4f8);
+}
+
+.painel-fisio {
+  width: 20%;
+  height: 100vh;
+  background-color: var(--color-primary);
+  /* box-shadow: var(--shadow-card); */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.painel-logo {
+  display: flex;
+  align-items: center;
+  padding: var(--space-md);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  /* border-bottom: 1px solid var(--color-primary-dark); */
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
+}
+
+.painel-logo img {
+  width: 72px;
+  height: auto;
+  filter:brightness(0) invert(1);
+}
+
+.painel-titulo h1 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.painel-titulo p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ecececcb;
+  margin-top: 3px;
+}
+
+.painel-menu {
+  flex: 1;  
+  padding: var(--space-sm);
+}
+
+.painel-menu ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.painel-menu li {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #ececec;
+  cursor: pointer;
+  gap: var(--space-md);
+  padding: var(--space-md) 20px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.painel-menu li:hover {
+  background-color: var(--color-primary-dark);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.painel-menu li.ativo {
+  background-color: var(--color-primary-hover);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.painel-menu .icone {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.painel-fim {
+  margin-top: auto;
+  padding: var(--space-md);
+  /* border-top: 1px solid var(--color-primary-dark); */
+  border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+}
+
+.painel-usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.painel-usuario .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.painel-usuario-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.painel-usuario-nome {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ececec;
+}
+
+.painel-usuario-papel {
+  font-size: 12px;
+  color: #ecececcb;
+}
+
+.painel-creditos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: var(--space-md);
+    font-size: 12px;
+    color: #ecececcb;
+}
+
+.conteudo-fisio {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+}
