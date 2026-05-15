@@ -67,7 +67,7 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
     observacao: null,
   });
 
-  const [carregando, setCarregando] = useState(true);
+  const [_carregando, setCarregando] = useState(true);
   const [agora, setAgora] = useState(new Date());
   
   const sessaoAtiva = dados.sessaoAtiva;
