@@ -1,0 +1,6 @@
+.botoes {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-lg);
+    gap: var(--space-sm);
+}

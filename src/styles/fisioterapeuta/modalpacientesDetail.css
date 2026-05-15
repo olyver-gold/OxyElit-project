@@ -1,0 +1,106 @@
+.dados-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.dados {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.titulo-dados {
+    margin-bottom: var(--space-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-dado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 86px;
+    padding: var(--space-sm);
+    gap: var(--space-xs);
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card-dado:hover {
+    border-color: var(--color-primary-dark);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.card-dado p {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.card-dado span {
+    display: block;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.card-dado span.sucesso {    font-weight: 600; color: var(--color-sucesso);    }
+.card-dado span.neutro {    font-weight: 600; color: var(--color-neutro);    }
+
+.card-texto {
+    display: flex;
+    flex-direction: flex-start;
+    min-height: 42px;
+    align-items: center; 
+    margin-bottom: var(--space-md);
+    padding: var(--space-sm);
+    background-color: var(--surface-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+}
+
+/* Badges opcionais para valores específicos */
+.badge-status,
+.badge-sessao,
+.badge-evolucao {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+
+.badge-status.inativo,
+.badge-sessao.neutro,
+.badge-evolucao.neutra {
+  background-color: #f1f5f9;
+  color: var(--color-neutro);
+}
+
+.badge-evolucao.alerta {
+  background-color: #fee2e2;
+  color: var(--color-perigo);
+}
+
+.badge-evolucao.melhora {
+  background-color: #dbeafe;
+  color: var(--color-sucesso);
+}

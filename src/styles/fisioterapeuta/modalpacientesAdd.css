@@ -1,0 +1,35 @@
+.campo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-md);
+}
+
+.campos-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.campo input, .campo select, .campo textarea {
+    padding: var(--space-sm);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.campo label {
+    margin-bottom: var(--space-sm);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.campo input:focus, select:focus, textarea:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+
+.campo textarea {
+    resize: vertical;
+    height: 80px;
+}

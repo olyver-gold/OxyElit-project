@@ -1,0 +1,50 @@
+:root {
+  /* paleta primária */
+  --color-primary:        #0062c4;
+  --color-primary-dark:   #0055aa;
+  --color-primary-hover:  #1a7fd4;
+  --color-primary-bg:     #d6eaff;
+
+  /* paleta secundária */
+  --color-secondary:      #008ca9;
+  --color-secondary-dark: #006d84;
+  --color-secondary-hover:#00a8c8;
+  --color-secondary-bg:   #d0f2f8;
+
+  /* semânticas */
+  --color-sucesso:        #00875a;
+  --color-aviso:          #e07b00;
+  --color-perigo:         #c0392b;
+  --color-neutro:         #5a6a7a;
+
+  /* superfícies neutras */
+  --surface-primary:   #ffffff;
+  --surface-secondary: #f8fafc;
+  --border-subtle:     #e2e8f0;
+  --border-warning:    #fed7aa;
+
+  /* texto */
+  --text-primary:      #1a1a2e;
+  --text-secondary:    #64748b;
+
+  /* tipografia */
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-display: 'Orbitron', sans-serif;  /* só para o logo */
+
+  /* espaçamentos */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+
+  /* bordas */
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  20px;
+
+  /* sombras */
+  --shadow-card: 0 20px 40px rgba(0, 98, 196, 0.12);
+  --shadow-sm:   0 2px 8px rgba(0, 0, 0, 0.08);
+}

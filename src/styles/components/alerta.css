@@ -1,0 +1,37 @@
+.card-alerta {
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+    flex: 0.8;
+    background-color: #fff6ec;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.alerta-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.alerta-header span {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-aviso);
+}
+
+.alert {
+    width: 20px;
+    height: 20px;
+    color: var(--color-aviso);
+}
+
+.card-alerta p {
+    font-size: 14px;
+    color: var(--color-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-sm);
+}
