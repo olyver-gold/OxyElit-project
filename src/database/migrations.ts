@@ -6,8 +6,7 @@ export const migrations = `
     nome       TEXT    NOT NULL,
     email      TEXT    NOT NULL UNIQUE,
     senha_hash TEXT    NOT NULL,
-    papel      TEXT    NOT NULL
-                CHECK(papel IN ('admin','fisioterapeuta','tecnico')),
+    papel      TEXT    NOT NULL DEFAULT 'fisioterapeuta',
     ativo      INTEGER NOT NULL DEFAULT 1,
     criado_em  TEXT    NOT NULL DEFAULT (datetime('now'))
   );

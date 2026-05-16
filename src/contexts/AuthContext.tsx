@@ -4,7 +4,7 @@ interface Usuario {
   id: number;
   nome: string;
   email: string;
-  papel: 'admin' | 'fisioterapeuta' | 'tecnico';
+  papel: string;
 }
 
 // Contexto de autenticação para gerenciar o estado do usuário logado

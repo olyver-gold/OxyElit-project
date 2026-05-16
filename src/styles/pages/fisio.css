@@ -10,7 +10,6 @@
   width: 20%;
   height: 100vh;
   background-color: var(--color-primary);
-  /* box-shadow: var(--shadow-card); */
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -21,24 +20,30 @@
   align-items: center;
   padding: var(--space-md);
   gap: var(--space-md);
+  min-width: 0;
   margin-bottom: var(--space-lg);
-  /* border-bottom: 1px solid var(--color-primary-dark); */
   border-bottom: 0.5px solid rgba(255, 255, 255, 0.12);
 }
 
 .painel-logo img {
-  width: 72px;
+  width: 64px;
   height: auto;
   filter:brightness(0) invert(1);
+  flex-shrink: 0;
+}
+
+.painel-titulo {
+  min-width: 0;
 }
 
 .painel-titulo h1 {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: clamp(21px, 2vw, 32px);
   font-weight: 700;
   color: #ffffff;
   letter-spacing: 1px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .painel-titulo p {
@@ -94,22 +99,33 @@
 }
 
 .painel-fim {
+  position: relative;
   margin-top: auto;
   padding: var(--space-md);
   /* border-top: 1px solid var(--color-primary-dark); */
   border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+  overflow: visible;
 }
 
 .painel-usuario {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  padding: var(--space-sm);
   margin-bottom: var(--space-md);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.painel-usuario:hover {
+  background-color: var(--color-primary-hover);
+  transition: all 0.2s ease;
+  transform: translateY(-1px);
 }
 
 .painel-usuario .avatar {
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   background-color: #ececec;
   display: flex;
@@ -137,13 +153,133 @@
   color: #ecececcb;
 }
 
+/* rodapé clicável */
+.painel-usuario-chevron {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.painel-usuario-chevron.aberto {
+  transform: rotate(-90deg);
+}
+
+/* popover */
+.usuario-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 12px;
+  right: 12px;
+
+  background: #ffffff;
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card) var(--shadow-sm);
+
+  overflow: hidden;
+  animation: popoverIn 0.16s ease-out;
+  z-index: 100;
+}
+
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popover-titulo {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.popover-item,
+.popover-add,
+.popover-sair {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.popover-item:hover,
+.popover-add:hover,
+.popover-sair:hover {
+  background-color: var(--surface-primary);
+}
+
+.popover-avatar,
+.popover-add-icon {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+
+.popover-nome {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.popover-email {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.popover-add {
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.popover-add-icon {
+  font-size: 16px;
+}
+
+.popover-sair {
+  color: var(--color-perigo);
+  transition: background 0.1s ease;
+  border: 1px solid var(--border-subtle)
+}
+
+.popover-sair:hover {
+  background: #fef2f2;
+}
+
 .painel-creditos {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: var(--space-md);
-    font-size: 12px;
-    color: #ecececcb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: var(--space-md);
+  font-size: 12px;
+  color: #ecececcb;
 }
 
 .conteudo-fisio {

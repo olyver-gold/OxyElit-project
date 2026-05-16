@@ -5,8 +5,9 @@
 @import './components/alerta.css';
 /* @import './components/input.css';
 @import './components/card.css'; */
-@import './pages/login..css';
+@import './pages/login.css';
 @import './pages/fisio.css';
+@import './pages/setup.css';
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
 
 *, *::before, *::after {

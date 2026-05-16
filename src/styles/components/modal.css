@@ -18,18 +18,24 @@
 
 .modal.sm {     width: 500px;   }
 .modal.md {     width: 560px;   }
-.modal.lg {     width: 620px;   }
+.modal.lg {     
+    width: min(620px, calc(100vw - 32px));
+    
+}
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: var(--space-md);
+
     background-color: var(--color-primary);
     color: #ececec;
     border-bottom: 1px solid var(--border-subtle);
+
     font-size: 14px;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .modal-header span {
@@ -39,6 +45,8 @@
 }
 .modal-body {
     padding: var(--space-md);
+    flex: 1;
+    overflow-y: auto;
 }
 
 .modal-footer {
@@ -46,7 +54,9 @@
     justify-content: flex-end;
     gap: var(--space-md);
     padding: var(--space-sm);
+    background-color: var(--surface-secondary);
     border-top: 1px solid var(--border-subtle);
+    flex-shrink: 0;
 }
 
 .modal-erro {

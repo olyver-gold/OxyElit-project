@@ -1,0 +1,70 @@
+.setup-background {
+  background-color: #1a5fa8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+.setup-card {
+  width: 86%;
+  height: 90%;
+  display: flex;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);;
+}
+
+.setup-left {
+    width: 52%;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--space-sm) 18px; 
+}
+
+.setup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.setup-body h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0a1628;
+}
+
+.setup-body p {
+  font-size: 12px;
+  color: var(--color-neutral);
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+.titulo-config {
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.setup-step-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  width: fit-content;
+}
+
+.setup-erro {
+  color: var(--color-perigo);
+  font-size: 12px;
+  margin: var(--space-sm);
+}

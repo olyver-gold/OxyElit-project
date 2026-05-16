@@ -6,7 +6,7 @@ function RotaProtegida({ children }: { children: JSX.Element }) {
     const { usuario } = useAuth();
 
     if (!usuario) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/login" replace />;
     }
 
     return children;

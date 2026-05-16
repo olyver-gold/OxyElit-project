@@ -1,4 +1,4 @@
-import "../styles/pages/login..css";
+import "../styles/pages/login.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -15,12 +15,6 @@ function Login(){
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
-
-  const redirectMap = {
-    admin: "/page-admin",
-    fisioterapeuta: "/page-fisio",
-    tecnico: "/page-tecnico"
-  }
 
   const handleLogin = async () => {
     if (!email || !senha) {
@@ -44,7 +38,7 @@ function Login(){
         console.error("Erro ao maximizar:", e);
       }
 
-      navigate(redirectMap[usuario.papel]);
+      navigate('/app');
     } catch (e: any) {
       setErro(e.message || "Tente novamente.");
     } finally {
@@ -121,6 +115,16 @@ function Login(){
             >
               Entrar no sistema
             </button>
+          </div>
+
+          <div className="login-cadastro-link">
+            <span>Sem conta? </span>
+            <span
+              className="login-cadastro-btn"
+              onClick={() => navigate('/setup')}
+            >
+              Cadastre-se
+            </span>
           </div>
 
           <div className="login-credits">
