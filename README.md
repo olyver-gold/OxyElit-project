@@ -9,5 +9,6 @@ This template should help get you started developing with Tauri, React and Types
 # OxyElit-project
 
 Avisos: 
-1. O aplicativo é desenvolvido em sistema operacional de distribuição Linux, portanto ainda nessas versões testes ele apresenta um problema nas fontes ao rodar no sistema Windows.
-2. A próxima versão a ser publicada no github será uma atualização completa quanto ao software, pois ele passará por uma reestruturação.
+1. O aplicativo é desenvolvido em sistema operacional de distribuição Linux, e pode apresentar divergências em sistemas Windows/Mac.
+2. A versão mais recente já possui a reestruturação completa das novas versões.
+3. O uso do software exige conexão com os dispositivos
