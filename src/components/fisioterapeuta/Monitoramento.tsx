@@ -9,9 +9,19 @@ import {
   debugValidarIds
 } from "../../database/services/sessoes";
 import { Paciente , listarPacientesPorFisioterapeuta} from "../../database/services/pacientes";
+import Alertas from "../compartilhado/Alertas";
+import {
+  AlertaSessao,
+  listarAlertasSessao,
+  ignorarAlertaSessao,
+  resolverAlertaSessao,
+} from "../../database/services/alertasSessao";
+import { registrarLogSessao } from "../../database/services/logsSessao";
+import { registrarAjusteValvula } from "../../database/services/ajustesValvula";
 import { criarParametrosAlvoSessao } from "../../database/services/parametros";
 import ModalPosSessao from "./modals/ModalPosSessao";
 import { formatarDataHoraSQLite } from "../../utils/data";
+import { calcularDuracaoSessao } from "../../utils/data";
 
 import { LuTriangleAlert } from "react-icons/lu";
 import GraficoPressao from "../compartilhado/GraficoPressao";
@@ -35,9 +45,9 @@ function gerarIniciais(nome: string): string {
   }
 
   const primeira = partes[0][0];
-  const ultima = partes[partes.length - 1][0];
+  const segunda = partes[1][0];
 
-  return `${primeira}${ultima}`.toUpperCase();
+  return `${primeira}${segunda}`.toUpperCase();
 }
 
 function Monitoramento({ pacientePreSelecionadoId }: Props) {
@@ -55,14 +65,22 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
   const [pressaoMin, setPressaoMin] = useState("");
   const [pressaoMax, setPressaoMax] = useState("");
 
-  const [observacoesSessao, setObservacoesSessao] = useState("");
-
-  const [sessaoAtiva, setSessaoAtiva] = useState<Sessao | null>(null);
   const [carregandoSessao, setCarregandoSessaoAtiva] = useState(true);
+  const [observacoesSessao, setObservacoesSessao] = useState("");
+  const [sessaoAtiva, setSessaoAtiva] = useState<Sessao | null>(null);
+  const [sessaoEncerradaId, setSessaoEncerradaId] = useState<number | null>(null);
+
+  const [alertasSessao, setAlertasSessao] = useState<AlertaSessao[]>([]);
+  const [agora, setAgora] = useState(new Date());
+
+  const duracaoSessaoAtiva = sessaoAtiva
+    ? calcularDuracaoSessao(sessaoAtiva.inicio)
+    : "0min 00s";
+
+  void agora;
+
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(false);
-  
-  const [sessaoEncerradaId, setSessaoEncerradaId] = useState<number | null>(null);
   const [modalPosSessaoAberto, setModalPosSessaoAberto] = useState(false);
 
   async function carregarDadosIniciais() {
@@ -111,10 +129,29 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
     }
   }
 
+  async function carregarAlertas(sessaoId: number) {
+    const alertas = await listarAlertasSessao(sessaoId);
+    setAlertasSessao(alertas);
+  }
+
   useEffect(() => {
     carregarDadosIniciais();
   }, [usuario, pacientePreSelecionadoId]);
   
+  useEffect(() => {
+    if (!sessaoAtiva) return;
+
+    carregarAlertas(sessaoAtiva.id);
+  }, [sessaoAtiva]);
+
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setAgora(new Date());
+    }, 1000);
+
+    return () => clearInterval(intervalo);
+  }, []);
+
   function numeroOuUndefined(valor: string): number | undefined {
     if (valor.trim() === "") return undefined;
     return Number(valor);
@@ -255,6 +292,59 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
     }
   }
 
+  async function handleRegistrarAjuste(alerta: AlertaSessao) {
+    if (!usuario) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+
+    const observacao = window.prompt("Descreva o ajuste realizado:");
+
+    if (!observacao?.trim()) return;
+
+    try {
+      await registrarAjusteValvula({
+        sessaoId: alerta.sessao_id,
+        usuarioId: usuario.id,
+        observacao: observacao.trim(),
+      });
+
+      await resolverAlertaSessao(alerta.id);
+
+      await registrarLogSessao(
+        alerta.sessao_id,
+        "ajuste",
+        `Ajuste registrado para alerta: ${alerta.mensagem}`
+      );
+
+      await carregarAlertas(alerta.sessao_id);
+    } catch (error) {
+      console.error("Erro ao registrar ajuste:", error);
+      alert("Não foi possível registrar o ajuste.");
+    }
+  }
+
+  async function handleIgnorarAlerta(alerta: AlertaSessao) {
+    const confirmar = window.confirm("Deseja ignorar este alerta?");
+
+    if (!confirmar) return;
+
+    try {
+      await ignorarAlertaSessao(alerta.id);
+
+      await registrarLogSessao(
+        alerta.sessao_id,
+        "alerta",
+        `Alerta ignorado: ${alerta.mensagem}`
+      );
+
+      await carregarAlertas(alerta.sessao_id);
+    } catch (error) {
+      console.error("Erro ao ignorar alerta:", error);
+      alert("Não foi possível ignorar o alerta.");
+    }
+  }
+  
   async function handleEncerrarSessao() {
     if (!usuario) {
       alert("Usuário não autenticado");
@@ -335,7 +425,7 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
             <div className="divisao-card">
               <div className="coluna">
                 <span>Duração</span>
-                <p className="duração">xxx</p>
+                <p className="duração">{duracaoSessaoAtiva}</p>
               </div>
               <div className="coluna">
                 <span>Início</span>
@@ -387,18 +477,12 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
             </div>
 
             <div className="monitor-right">
-              <div className="card alerta">
-                <div>
-                  <div className="alerta-header">
-                    <LuTriangleAlert className="alert"/>
-                    <h3>Alerta</h3>
-                  </div>
-                  <p>{sessaoAtiva.paciente_nome} · FR acima do esperado nas últimas 3 leituras (21 rpm). Verifique o ajuste da válvula.</p>
-                </div>
-                <button className="btn btn-outline" style={{ width: '100%' }}>
-                  Registrar ajuste
-                </button>
-              </div>
+              <Alertas
+                alertas={alertasSessao}
+                modo="operacional"
+                onRegistrarAjuste={handleRegistrarAjuste}
+                onIgnorar={handleIgnorarAlerta}
+              />
 
               <div className="card">
                 <h3>Parâmetros-alvo da sessão</h3>
@@ -579,23 +663,21 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
             <p>Sensor detectado e pronto</p>
         </div>
 
-        <button
-          className="btn btn-primary-white"
-          onClick={() => handleIniciarSessao()}
-          disabled={!pacienteSelecionado || carregando}
-        >
-          {carregando ? "Iniciando..." : "Iniciar Sessão"}
-        </button>
-      </div>
+        <div className="botao">
+          <button
+            className="btn btn-primary-white"
+            onClick={() => handleIniciarSessao()}
+            disabled={!pacienteSelecionado || carregando}
+          >
+            {carregando ? "Iniciando..." : "Iniciar Sessão"}
+          </button>
+                </div>
+        </div>
 
         {modalPosSessaoAberto && sessaoEncerradaId && (
           <ModalPosSessao
             // sessaoId={sessaoEncerradaId}
             onFechar={() => setModalPosSessaoAberto(false)}
-            // onRelatorio={() => {
-            //   setModalPosSessaoAberto(false);
-            //   // onNavegar(5) ou página de relatórios
-            // }}
             // onAnalisePreditiva={() => {
             //   setModalPosSessaoAberto(false);
             //   // onNavegar(4) ou página preditiva/análises

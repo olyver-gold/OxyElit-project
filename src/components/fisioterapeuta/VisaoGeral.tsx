@@ -1,8 +1,5 @@
 import "../../styles/fisioterapeuta/visaogeral.css";
-import { LuTriangleAlert } from "react-icons/lu";
 import { PiMonitor } from "react-icons/pi";
-// import { FaRegCheckCircle } from "react-icons/fa";
-
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -11,26 +8,14 @@ import {
   ResumoClinicoPaciente,
   DadosVisaoGeral,
 } from "../../database/services/visaogeral";
-// import {
-//   buscarSessaoAtivaPorFisioterapeuta,
-//   Sessao,
-// } from '../../database/services/sessoes';
-
-import { formatarDataSQLite } from "../../utils/data";
+import Alertas from "../compartilhado/Alertas";
+import {
+  AlertaSessao,
+  listarAlertasNaoResolvidosSessao,
+} from "../../database/services/alertasSessao";
 import GraficoPressao   from "../compartilhado/GraficoPressao";
-// import Alerta         from "../compartilhado/Alertas";
-
-function calcularTempoSessao(inicio: string, agora: Date) {
-  const inicioData = new Date(inicio);
-
-  const diferencaMs = agora.getTime() - inicioData.getTime();
-  const totalSegundos = Math.max(0, Math.floor(diferencaMs / 1000));
-
-  const minutos = Math.floor(totalSegundos / 60);
-  const segundos = totalSegundos % 60;
-
-  return `${minutos}min ${segundos.toString().padStart(2, "0")}s`;
-}
+import { formatarDataSQLite } from "../../utils/data";
+import { calcularDuracaoSessao } from "../../utils/data";
 
 function formatarTendencia(tendencia: string | null) {
   if (!tendencia) return "Sem dados suficientes";
@@ -67,10 +52,18 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
     observacao: null,
   });
 
+  const [alertasSessao, setAlertasSessao] = useState<AlertaSessao[]>([]);
+
   const [_carregando, setCarregando] = useState(true);
   const [agora, setAgora] = useState(new Date());
   
   const sessaoAtiva = dados.sessaoAtiva;
+
+  const duracaoSessaoAtiva = sessaoAtiva
+    ? calcularDuracaoSessao(sessaoAtiva.inicio)
+    : "0min 00s";
+
+  void agora;
 
   const iniciais = sessaoAtiva?.paciente_nome
     .split(' ')
@@ -111,7 +104,12 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
         const resumo = await buscarResumoClinicoPaciente(
           resultado.sessaoAtiva.paciente_id
         );
+        
+        const alertas = await listarAlertasNaoResolvidosSessao (
+          resultado.sessaoAtiva.id
+        )
 
+        setAlertasSessao(alertas);
         setResumoClinico(resumo);
       } else {
         setResumoClinico({
@@ -120,6 +118,7 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
           tendencia: null,
           observacao: null,
         });
+        setAlertasSessao([]);
       }
     } catch (e) {
       console.error("Erro ao carregar dados da visão geral:", e);
@@ -138,6 +137,8 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
         tendencia: null,
         observacao:null
       })
+
+      setAlertasSessao([]);
     } finally {
       setCarregando(false);
     }
@@ -168,9 +169,23 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
           <h2>Visão Geral</h2>
           <span>{dataHoje}</span>
         </div>
-        <button className="btn btn-primary-blue" onClick={() => onNavegar(2)}>
-          + Nova Sessão
-        </button>
+        {sessaoAtiva ? (
+          <button 
+            className="btn btn-red"
+            onClick={() => onNavegar(2)}
+          >
+            Encerrar sessão
+          </button>
+        ) : (
+          <button 
+            className="btn btn-primary-blue"
+            onClick={() => onNavegar(2)}
+          >
+            + Nova sesssão
+          </button>
+          
+        )}
+          
       </div>
 
       <div className="visao-conteudo">
@@ -194,8 +209,13 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
           {sessaoAtiva ? (
             <div className="metric-card">
               <span className="mc-title">Alertas ativos</span>
-              <span className="mc-value warn">-</span>
-              <span className="mc-sub warn">Monitorando parâmetros</span>
+              <span className={dados.alertasAtivos > 0 ? "mc-value warn" : "mc-value ok"}>
+                {dados.alertasAtivos > 0 ? dados.alertasAtivos : "-"}
+              </span>
+              
+              <span className={dados.alertasAtivos > 0 ? "mc-sub warn" : "mc-sub ok"}>
+                {dados.alertasAtivos > 0 ? "Requer atenção" : "Monitorando parâmetros"}
+              </span>
             </div>
           ) : (
             <div className="metric-card">
@@ -220,7 +240,7 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
                 <span className="card-titulo">Sessão ativa</span>
                 <div className="status-ativa">
                   <span className="dot-ativo"></span>
-                  Em andamento · {calcularTempoSessao(sessaoAtiva.inicio, agora)}
+                  Em andamento · {duracaoSessaoAtiva}
                 </div>
               </div>
 
@@ -293,18 +313,12 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
           
           {sessaoAtiva ? (
             <div className="visao-col-direita">
-              <div className="card-alerta">
-                <div>
-                  <div className="alerta-header">
-                    <LuTriangleAlert className="alert"/>
-                    <span>Alerta de parâmetro</span>
-                  </div>
-                  <p>João Silva · FR acima do esperado nas últimas 3 leituras (21 rpm). Verifique o ajuste da válvula.</p>
-                </div>
-                <button className="btn btn-outline" style={{ width: '100%' }}>
-                  Registrar ajuste
-                </button>
-              </div>
+              <Alertas
+                alertas={alertasSessao}
+                modo="resumo"
+                titulo="Alerta da sessão"
+                onVerMonitor={() => onNavegar(2)}
+              />
 
               <div className="card-resumo">
                 <span className="resumo-titulo">Resumo clínico</span>

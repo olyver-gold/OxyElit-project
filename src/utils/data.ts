@@ -19,3 +19,25 @@ export function formatarDataSQLite(dataSQLite: string | null): string {
 
     return dataUTC.toLocaleDateString("pt-BR");
 }
+
+export function calcularDuracaoSessao(inicioSQLite: string | null | undefined): string {
+    if (!inicioSQLite) return "0min 00s";
+
+    const inicio = new Date(inicioSQLite.replace(" ", "T") + "Z");
+    const agora = new Date();
+
+    const diferencaMs = agora.getTime() - inicio.getTime();
+    const totalSegundos = Math.max(0, Math.floor(diferencaMs / 1000));
+
+    const horas = Math.floor(totalSegundos / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
+
+    if (horas > 0) {
+        return `${horas}h ${minutos.toString().padStart(2, "0")}min ${segundos
+        .toString()
+        .padStart(2, "0")}s`;
+    }
+
+    return `${minutos}min ${segundos.toString().padStart(2, "0")}s`;
+}

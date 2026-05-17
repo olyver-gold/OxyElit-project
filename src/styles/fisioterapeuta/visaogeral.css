@@ -162,8 +162,8 @@
 }
 
 .dot-ativo {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background-color: var(--color-sucesso);
     border-radius: 50%;
     display: inline-block;

@@ -97,4 +97,52 @@ export const migrations = `
     timestamp  TEXT    NOT NULL DEFAULT (datetime('now')),
     observacao TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS logs_sessao (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  sessao_id   INTEGER NOT NULL REFERENCES sessoes(id),
+  tipo        TEXT NOT NULL
+              CHECK(tipo IN (
+                'inicio',
+                'sensor',
+                'alerta',
+                'ajuste',
+                'observacao',
+                'encerramento',
+                'sistema'
+              )),
+  mensagem    TEXT NOT NULL,
+  criado_em   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_logs_sessao
+  ON logs_sessao(sessao_id, criado_em);
+
+CREATE TABLE IF NOT EXISTS alertas_sessao (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  sessao_id     INTEGER NOT NULL REFERENCES sessoes(id),
+  tipo          TEXT NOT NULL
+                CHECK(tipo IN (
+                  'fr_alta',
+                  'fr_baixa',
+                  'pressao_alta',
+                  'pressao_baixa',
+                  'ie_fora_faixa',
+                  'sensor_sem_leitura',
+                  'sensor_desconectado',
+                  'ciclo_atipico'
+                )),
+  severidade    TEXT NOT NULL DEFAULT 'baixa'
+                CHECK(severidade IN ('baixa', 'media', 'alta')),
+  mensagem      TEXT NOT NULL,
+  valor_atual   REAL,
+  limite_min    REAL,
+  limite_max    REAL,
+  resolvido     INTEGER NOT NULL DEFAULT 0,
+  criado_em     TEXT NOT NULL DEFAULT (datetime('now')),
+  resolvido_em  TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_alertas_sessao
+  ON alertas_sessao(sessao_id, resolvido, criado_em);
 `;

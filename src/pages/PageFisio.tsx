@@ -3,7 +3,7 @@ import logo from "../assets/upOxyElit.png";
 
 import { LuLayoutDashboard } from "react-icons/lu";
 import { TbHeartRateMonitor } from "react-icons/tb";
-import { FaUserPlus, FaChartLine, FaFileMedical } from "react-icons/fa";
+import { FaUserPlus, FaChartLine } from "react-icons/fa";
 import { CgChevronRight } from "react-icons/cg";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -16,7 +16,6 @@ import VisaoGeral from "../components/fisioterapeuta/VisaoGeral";
 import Monitoramento from "../components/fisioterapeuta/Monitoramento";
 import Pacientes from "../components/fisioterapeuta/Pacientes";
 import Preditivo from "../components/fisioterapeuta/Preditivo";
-import Relatorios from "../components/fisioterapeuta/Relatorios";
 
 interface UsuarioSimples {
   id: number;
@@ -41,7 +40,6 @@ function PageFisio() {
     2: <Monitoramento pacientePreSelecionadoId={pacientePreSelecionadoId}/>,
     3: <Pacientes onNavegar={setMenuAtivo} onSelecionarPacienteParaSessao={setPacientePreSelecionadoId}/>,
     4: <Preditivo />,
-    5: <Relatorios />,
   };
 
   // pega as iniciais do nome para o avatar
@@ -53,7 +51,6 @@ function PageFisio() {
     { id: 2, nome: "Monitoramento", icone: <TbHeartRateMonitor /> },
     { id: 3, nome: "Pacientes",     icone: <FaUserPlus /> },
     { id: 4, nome: "Análises",      icone: <FaChartLine /> },
-    { id: 5, nome: "Relatórios",    icone: <FaFileMedical /> },
   ];
 
   // navegação vinda de outra tela (ex: fim de sessão - análise)
