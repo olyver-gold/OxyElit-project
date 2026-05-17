@@ -1,37 +1,88 @@
-.card-alerta {
-    border-radius: var(--radius-lg);
-    padding: var(--space-md);
-    border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-sm);
+.alertas-card {
     flex: 0.8;
-    background-color: #fff6ec;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    background-color: var(--surface-primary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
 }
 
-.alerta-header {
+.alertas-card.compacto {
+    padding: 12px;
+}
+
+.alertas-header {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    justify-content: space-between;
     margin-bottom: var(--space-md);
 }
 
-.alerta-header span {
+.alertas-header h3 {
+    margin: 0;
     font-size: 18px;
     font-weight: 500;
     color: var(--color-aviso);
 }
 
-.alert {
-    width: 20px;
-    height: 20px;
-    color: var(--color-aviso);
+.alertas-contador {
+    min-width: var(--space-lg);
+    height: var(--space-lg);
+    padding: 0 var(--space-sm);
+    border-radius: 50%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--surface-secondary);
+    color: var(--color-perigo);
+    font-size: 12px;
+    font-weight: 800;
+    }
+
+.alertas-vazio {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+
+    padding: var(--space-md);
+    border-radius: var(--radius-lg);
+
+    background: var(--surface-primary);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
 }
 
-.card-alerta p {
-    font-size: 14px;
-    color: var(--color-secondary);
-    line-height: 1.5;
-    margin-bottom: var(--space-sm);
+.alertas-vazio div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.alertas-icone-ok {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-sucesso);
+    font-size: 21px;
+}
+
+.alertas-vazio strong {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.alertas-vazio span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.2;
 }

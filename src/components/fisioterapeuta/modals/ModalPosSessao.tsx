@@ -21,7 +21,6 @@ function ModalPosSessao({ onFechar }: Props) {
                     <p>Selecione uma opção para continuar:</p>
 
                     <div className="botoes">
-                        <button className="btn btn-primary-white">Ver relatório</button>
                         <button className="btn btn-primary-white">Análise preditiva</button>
                         <button className="btn btn-secondary-white">Histórico de sessões</button>
                         <button className="btn btn-secondary-white" onClick={onFechar}>Voltar ao início</button>

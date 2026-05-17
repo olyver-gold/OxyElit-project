@@ -1,6 +1,7 @@
 .botoes {
     display: flex;
     flex-direction: column;
-    padding: var(--space-lg);
+    padding: var(--space-md) var(--space-xl);
+    margin: var(--space-sm) var(--space-xl);
     gap: var(--space-sm);
 }
