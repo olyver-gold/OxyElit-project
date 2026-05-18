@@ -1,5 +1,9 @@
 use tauri::Manager;
 
+mod mqtt;
+
+use mqtt::{mqtt_conectar, mqtt_desconectar, MqttState};
+
 #[tauri::command]
 fn redimensionar_janela(app: tauri::AppHandle) -> Result<(), String> {
     let window = app
@@ -24,8 +28,11 @@ fn redimensionar_janela(app: tauri::AppHandle) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::new().build())
+        .manage(MqttState::default())
         .invoke_handler(tauri::generate_handler![
             redimensionar_janela,
+            mqtt_conectar,
+            mqtt_desconectar
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o app");

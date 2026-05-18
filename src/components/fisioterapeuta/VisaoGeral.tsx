@@ -1,6 +1,6 @@
 import "../../styles/fisioterapeuta/visaogeral.css";
 import { PiMonitor } from "react-icons/pi";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   buscarDadosVisaoGeral,
@@ -13,6 +13,8 @@ import {
   AlertaSessao,
   listarAlertasNaoResolvidosSessao,
 } from "../../database/services/alertasSessao";
+import { useSensor } from "../../contexts/SensorContext";
+import { processarMetricasRespiratorias } from "../../services/processarMetRespiratorias";
 import GraficoPressao   from "../compartilhado/GraficoPressao";
 import { formatarDataSQLite } from "../../utils/data";
 import { calcularDuracaoSessao } from "../../utils/data";
@@ -51,6 +53,21 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
     tendencia: null,
     observacao: null,
   });
+
+  const {
+    leiturasSensor,
+    // ultimaLeitura,
+    mqttConectado,
+    statusSensor,
+    // erroSensor,
+    // conectarMqtt,
+    // desconectarMqtt,
+    // limparLeituras,
+  } = useSensor();
+
+  const metricasRespiratorias = useMemo(() => {
+    return processarMetricasRespiratorias(leiturasSensor);
+  }, [leiturasSensor]);
 
   const [alertasSessao, setAlertasSessao] = useState<AlertaSessao[]>([]);
 
@@ -266,29 +283,48 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
               <div className="sessao-metricas">
                 <div className="sessao-metrica">
                   <span className="sm-label">FR atual</span>
-                  <span className="sm-value ok">16</span>
+                  <span className="sm-value ok">
+                    {metricasRespiratorias.frAtual !== null
+                      ? metricasRespiratorias.frAtual.toFixed(0)
+                      : "--"}
+                  </span>
                   <span className="sm-unit">rpm</span>
                 </div>
                 <div className="sessao-metrica">
                   <span className="sm-label">Razão I:E</span>
-                  <span className="sm-value ok">1:2</span>
-                  <span className="sm-unit">normal</span>
+                  <span className="sm-value ok">
+                    {metricasRespiratorias.ieMedia !== null
+                      ? metricasRespiratorias.ieMedia.toFixed(2)
+                      : "--"}
+                  </span>
+                  <span className="sm-unit">{metricasRespiratorias.ieMedia !== null ? "estimada" : "aguardando"}</span>
                 </div>
                 <div className="sessao-metrica">
                   <span className="sm-label">Ti / Te</span>
-                  <span className="sm-value ok">1.2s</span>
-                  <span className="sm-unit">2.4s</span>
+                  <span className="sm-value ok">{metricasRespiratorias.tiMedio !== null
+                    ? `${metricasRespiratorias.tiMedio.toFixed(1)}s`
+                    : "--"}
+                  </span>
+                  <span className="sm-unit">
+                    {metricasRespiratorias.teMedio !== null
+                      ? `Te: ${metricasRespiratorias.teMedio.toFixed(1)}s`
+                      : "Te: --"}
+                  </span>
                 </div>
                 <div className="sessao-metrica">
                   <span className="sm-label">P. média</span>
-                  <span className="sm-value ok">3.2</span>
+                  <span className="sm-value ok">
+                    {metricasRespiratorias.pressaoMedia !== null
+                      ? metricasRespiratorias.pressaoMedia.toFixed(1)
+                      : "--"}
+                  </span>
                   <span className="sm-unit">cmH₂O</span>
                 </div>
               </div>
 
               <div className="waveform-box">
                 <GraficoPressao 
-                  leituras={[0, 0.5, -0.3, 0.8, -0.1, 0.2, -0.4, 0.6, -0.2, 0.1]} 
+                  leituras={leiturasSensor.map((leitura) => leitura.pressao)} 
                   altura={100} 
                   mostrarControles={false} 
                 />

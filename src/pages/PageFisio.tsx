@@ -9,6 +9,7 @@ import { CgChevronRight } from "react-icons/cg";
 import { useLocation, useNavigate } from "react-router-dom";
 import { JSX, useState, useEffect, useRef} from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { SensorProvider } from "../contexts/SensorContext";
 import { buscarOutrosUsuarios } from "../database/services/auth";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -127,107 +128,97 @@ function PageFisio() {
   };
 
   return (
-    <main className="page-fisio">
-      <div className="painel-fisio">
-
-        {/* LOGO + TÍTULO */}
-        <div className="painel-logo">
-          <img src={logo} alt="Logo OxyElit" />
-          <div className="painel-titulo">
-            <h1>OXYELIT</h1>
-            <p>Monitoramento respiratório clínico</p>
+    <SensorProvider>
+      <main className="page-fisio">
+        <div className="painel-fisio">
+          {/* LOGO + TÍTULO */}
+          <div className="painel-logo">
+            <img src={logo} alt="Logo OxyElit" />
+            <div className="painel-titulo">
+              <h1>OXYELIT</h1>
+              <p>Monitoramento respiratório clínico</p>
+            </div>
           </div>
-        </div>
-
-        {/* MENU */}
-        <div className="painel-menu">
-          <ul>
-            {itensMenu.map((item) => (
-              <li 
-                key={item.id}
-                onClick={() => setMenuAtivo(item.id)}
-                className={menuAtivo === item.id ? "ativo" : ""}
-              >
-                <span className="icone">{item.icone}</span>
-                <span className="item">{item.nome}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        {/* USER + LOGOUT + POPOVER */}
-        <div className="painel-fim" ref={popoverRef}>
-
-          {popoverAberto && (
-            <div className="usuario-popover">
-              <div className="popover-titulo">Trocar usuário</div>
-
-              {outrosUsuarios.length === 0 ? (
-                <div className="popover-vazio">Nenhum outro usuário cadastrado</div>
-              ) : (
-                outrosUsuarios.map(u => (
-                  <div
-                    key={u.id}
-                    className="popover-item"
-                    onClick={handleTrocarUsuario}
-                  >
-                    <div className="popover-avatar">{iniciais(u.nome)}</div>
-                    <div>
-                      <div className="popover-nome">{u.nome}</div>
-                      <div className="popover-email">{u.email}</div>
+          {/* MENU */}
+          <div className="painel-menu">
+            <ul>
+              {itensMenu.map((item) => (
+                <li
+                  key={item.id}
+                  onClick={() => setMenuAtivo(item.id)}
+                  className={menuAtivo === item.id ? "ativo" : ""}
+                >
+                  <span className="icone">{item.icone}</span>
+                  <span className="item">{item.nome}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+      
+          {/* USER + LOGOUT + POPOVER */}
+          <div className="painel-fim" ref={popoverRef}>
+            {popoverAberto && (
+              <div className="usuario-popover">
+                <div className="popover-titulo">Trocar usuário</div>
+                {outrosUsuarios.length === 0 ? (
+                  <div className="popover-vazio">Nenhum outro usuário cadastrado</div>
+                ) : (
+                  outrosUsuarios.map(u => (
+                    <div
+                      key={u.id}
+                      className="popover-item"
+                      onClick={handleTrocarUsuario}
+                    >
+                      <div className="popover-avatar">{iniciais(u.nome)}</div>
+                      <div>
+                        <div className="popover-nome">{u.nome}</div>
+                        <div className="popover-email">{u.email}</div>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-
-              <div className="popover-add" onClick={handleAdicionarUsuario}>
-                <span className="popover-add-icon">+</span>
-                <span>Adicionar usuário</span>
+                  ))
+                )}
+                <div className="popover-add" onClick={handleAdicionarUsuario}>
+                  <span className="popover-add-icon">+</span>
+                  <span>Adicionar usuário</span>
+                </div>
+                <div className="popover-sair" onClick={handleSair}>
+                  <span>Sair do sistema</span>
+                </div>
               </div>
-
-              <div className="popover-sair" onClick={handleSair}>
-                <span>Sair do sistema</span>
+            )}
+            {usuario && (
+              <div className="painel-usuario" onClick={handleAbrirPopover}>
+                <div className="avatar">{iniciais(usuario.nome)}</div>
+                <div className="painel-usuario-info">
+                  <span className="painel-usuario-nome">{usuario.nome}</span>
+                  <span className="painel-usuario-papel">Fisioterapeuta</span>
+                </div>
+                <span className={`painel-usuario-chevron ${popoverAberto ? 'aberto' : ''}`}>
+                  <CgChevronRight />
+                </span>
               </div>
+            )}
+            <div className="logout-button">
+              <button
+                className="btn btn-primary-blue"
+                style={{width: "100%"}}
+                onClick={handleSair}
+              >
+                Sair
+              </button>
             </div>
-          )}
-
-          {usuario && (
-            <div className="painel-usuario" onClick={handleAbrirPopover}>
-              <div className="avatar">{iniciais(usuario.nome)}</div>
-              <div className="painel-usuario-info">
-                <span className="painel-usuario-nome">{usuario.nome}</span>
-                <span className="painel-usuario-papel">Fisioterapeuta</span>
-              </div>
-              <span className={`painel-usuario-chevron ${popoverAberto ? 'aberto' : ''}`}>
-                <CgChevronRight />
-              </span>
+            <div className="painel-creditos">
+              <p>Acesso restrito a profissionais autorizados</p>
+              <p>2026 OXYELIT - Fisioterapia respiratória</p>
             </div>
-          )}
-
-          <div className="logout-button">
-            <button 
-              className="btn btn-primary-blue"
-              style={{width: "100%"}}
-              onClick={handleSair}
-            >
-              Sair
-            </button> 
-
-          </div>
-
-          <div className="painel-creditos">
-            <p>Acesso restrito a profissionais autorizados</p>
-            <p>2026 OXYELIT - Fisioterapia respiratória</p>
           </div>
         </div>
-      </div>
-
-      {/* CONTEÚDO PRINCIPAL - MENU ATIVO */}
-        <div className="conteudo-fisio">
-          {componentesMenu[menuAtivo]}
-        </div>
-
-    </main>
+        {/* CONTEÚDO PRINCIPAL - MENU ATIVO */}
+          <div className="conteudo-fisio">
+            {componentesMenu[menuAtivo]}
+          </div>
+      </main>
+    </SensorProvider>
   );
 }
 

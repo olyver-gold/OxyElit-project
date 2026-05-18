@@ -1,5 +1,5 @@
 import "../../styles/fisioterapeuta/monitoramento.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Sessao,
@@ -19,6 +19,8 @@ import {
 import { registrarLogSessao } from "../../database/services/logsSessao";
 import { registrarAjusteValvula } from "../../database/services/ajustesValvula";
 import { criarParametrosAlvoSessao } from "../../database/services/parametros";
+import { useSensor } from "../../contexts/SensorContext";
+import { processarMetricasRespiratorias } from "../../services/processarMetRespiratorias";
 import ModalPosSessao from "./modals/ModalPosSessao";
 import { formatarDataHoraSQLite } from "../../utils/data";
 import { calcularDuracaoSessao } from "../../utils/data";
@@ -72,6 +74,21 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
 
   const [alertasSessao, setAlertasSessao] = useState<AlertaSessao[]>([]);
   const [agora, setAgora] = useState(new Date());
+
+  const {
+    leiturasSensor,
+    ultimaLeitura,
+    mqttConectado,
+    statusSensor,
+    erroSensor,
+    conectarMqtt,
+    desconectarMqtt,
+    limparLeituras,
+  } = useSensor();
+
+  const metricasRespiratorias = useMemo(() => {
+    return processarMetricasRespiratorias(leiturasSensor);
+  }, [leiturasSensor]);
 
   const duracaoSessaoAtiva = sessaoAtiva
     ? calcularDuracaoSessao(sessaoAtiva.inicio)
@@ -292,6 +309,23 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
     }
   }
 
+  async function iniciarTesteGraficoMqtt() {
+    try {
+      limparLeituras();
+
+      if (!mqttConectado) {
+        await conectarMqtt();
+      }
+
+      alert(
+        "Teste MQTT preparado. Agora execute o simulador Python para enviar leituras ao gráfico."
+      );
+    } catch (error) {
+      console.error("Erro ao preparar teste MQTT:", error);
+      alert("Não foi possível preparar o teste MQTT.");
+    }
+  }
+
   async function handleRegistrarAjuste(alerta: AlertaSessao) {
     if (!usuario) {
       alert("Usuário não autenticado.");
@@ -442,35 +476,57 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
             <div className="monitor-left">
               <div className="card waveform-box">
                 <GraficoPressao
-                  leituras={[0, 0.5, -0.3, 0.8, -0.1, 0.2, -0.4, 0.6, -0.2, 0.1]}
+                  leituras={leiturasSensor.map((leitura) => leitura.pressao)}
                   altura={240}
                   mostrarControles
                 />
+                <p>Total de ciclos: {metricasRespiratorias.totalCiclos}</p>
+                <p>Ciclos atípicos: {metricasRespiratorias.ciclosAtipicos}</p>
+                <p>Desvio FR: {metricasRespiratorias.frDesvioPadrao ?? "--"}</p>
               </div>
 
               <div className="cards-metricas">
-                <div className="metrica-card metrica-alerta">
+                <div className="metrica-card">
                   <span className="metrica-label">FR atual</span>
-                  <strong className="metrica-valor">21</strong>
+                  <strong className="metrica-valor">
+                    {metricasRespiratorias.frAtual !== null
+                      ? metricasRespiratorias.frAtual.toFixed(0)
+                      : "--"}
+                  </strong>
                   <span className="metrica-unidade">rpm</span>
-                  <small><LuTriangleAlert/> acima</small>
                 </div>
 
                 <div className="metrica-card">
                   <span className="metrica-label">Razão I:E</span>
-                  <strong className="metrica-valor">1:2</strong>
-                  <span className="metrica-unidade">normal</span>
+                  <strong className="metrica-valor">
+                    {metricasRespiratorias.ieMedia !== null
+                      ? metricasRespiratorias.ieMedia.toFixed(2)
+                      : "--"}
+                  </strong>
+                  <span className="metrica-unidade">estimada</span>
                 </div>
 
                 <div className="metrica-card">
                   <span className="metrica-label">Ti / Te</span>
-                  <strong className="metrica-valor">1.2s</strong>
-                  <span className="metrica-unidade">Te: 2.4s</span>
+                  <strong className="metrica-valor">
+                    {metricasRespiratorias.tiMedio !== null
+                      ? `${metricasRespiratorias.tiMedio.toFixed(1)}s`
+                      : "--"}
+                  </strong>
+                  <span className="metrica-unidade">
+                    {metricasRespiratorias.teMedio !== null
+                      ? `Te: ${metricasRespiratorias.teMedio.toFixed(1)}s`
+                      : "Te: --"}
+                  </span>
                 </div>
 
                 <div className="metrica-card">
                   <span className="metrica-label">P. média</span>
-                  <strong className="metrica-valor">3.2</strong>
+                  <strong className="metrica-valor">
+                    {metricasRespiratorias.pressaoMedia !== null
+                      ? metricasRespiratorias.pressaoMedia.toFixed(1)
+                      : "--"}
+                  </strong>
                   <span className="metrica-unidade">cmH₂O</span>
                 </div>
               </div>
@@ -653,14 +709,40 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
         )}
 
         <div className="card">
-            <h3>Sensor</h3>
+            <h3>Sensor MQTT</h3>
 
-            <input 
-              type="text" 
-              value="/dev/ttyUSB0" readOnly
-            />
+            <div className="sensor-info">
+              <div>
+                <span>Broker</span>
+                <strong>localhost:1883</strong>
+              </div>
 
-            <p>Sensor detectado e pronto</p>
+              <div>
+                <span>Dispositivo</span>
+                <strong>esp32-001</strong>
+              </div>
+
+              <div>
+                <span>Status</span>
+                <strong className={mqttConectado ? "status-ok" : "status-off"}>
+                  {statusSensor}
+                </strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary-white"
+              onClick={mqttConectado ? desconectarMqtt : conectarMqtt}
+            >
+              {mqttConectado ? "Desconectar MQTT" : "Conectar MQTT"}
+            </button>
+
+            <p className="sensor-status-text">
+              {mqttConectado
+                ? "Recebendo dados do broker MQTT."
+                : "Conecte ao broker MQTT para receber leituras do sensor."}
+            </p>
         </div>
 
         <div className="botao">
