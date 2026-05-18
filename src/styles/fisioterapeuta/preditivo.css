@@ -18,12 +18,17 @@
     flex-shrink: 0;
 }
 
+.preditivo-header.linha {
+    flex-direction: row;
+    align-items: center;
+}
+
 .preditivo-header h2 {
     font-size: 24px;
     font-weight: 600;
 }
 
-.preditivo-header span {
+.preditivo-header p {
     font-size: 14px;
     color: #ffffffcc;
     margin-top: 2px;
@@ -42,11 +47,14 @@
     overflow-y: auto;
 }
 
-.card {
+.card,
+.preditivo-selecao-card,
+.preditivo-insuficiente-card,
+.preditivo-metrica-card {
     background-color: var(--surface-primary);
+    border: var(--border-subtle);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    padding: var(--space-md);
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
@@ -74,4 +82,307 @@
 .card span {
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+.preditivo-paciente-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.paciente-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.paciente-info strong {
+  color: var(--text-primary);
+}
+
+.paciente-info span,
+.paciente-info small {
+  color: var(--text-muted);
+}
+
+.preditivo-badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.preditivo-badge.disponivel {
+  background: #dcfce7;
+  color: var(--color-sucesso);
+}
+
+.preditivo-badge.insuficiente {
+  background: #fff7ed;
+  color: var(--color-aviso);
+}
+
+.preditivo-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.preditivo-metricas.quatro {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.preditivo-metrica-card {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.preditivo-metrica-card span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.preditivo-metrica-card strong {
+  color: var(--text-primary);
+  font-size: 24px;
+}
+
+.preditivo-metrica-card small {
+  color: var(--text-secondary);
+}
+
+.preditivo-metrica-card.destaque strong {
+  color: var(--color-primary);
+}
+
+.preditivo-insuficiente-card {
+  padding: var(--space-lg);
+}
+
+.preditivo-insuficiente-card h3 {
+  margin-top: 0;
+}
+
+.progresso-linha {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.progresso-barra {
+  width: 100%;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.progresso-barra div {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+
+.preditivo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.preditivo-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.componente-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.componente-score:last-child {
+  border-bottom: none;
+}
+
+.componente-score div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.componente-score span {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.componente-score small {
+  color: var(--text-secondary);
+}
+
+.componente-score-resultado {
+  align-items: flex-end;
+}
+
+.componente-score-resultado strong {
+  color: var(--color-primary);
+}
+
+.classificacao-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.classificacao-card strong {
+  color: var(--text-primary);
+}
+
+.classificacao-card span {
+  color: var(--text-secondary);
+}
+
+.classificacao-melhora {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.classificacao-piora {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.classificacao-estavel {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.grafico-evolucao-simples {
+  height: 260px;
+  display: flex;
+  align-items: end;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+}
+
+.grafico-barra-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grafico-barra-track {
+  flex: 1;
+  width: 100%;
+  max-width: 42px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: end;
+  overflow: hidden;
+}
+
+.grafico-barra {
+  width: 100%;
+  background: var(--color-primary);
+  border-radius: 50% 50% 0 0;
+}
+
+.grafico-barra-item span {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.grafico-placeholder {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--surface-secondary);
+  border-radius: var(--radius-md);
+}
+
+.sessoes-preditivas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sessao-preditiva-item {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 0.7fr;
+  gap: var(--space-md);
+  align-items: center;
+
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-secondary);
+}
+
+.sessao-preditiva-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sessao-preditiva-item span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.sessao-preditiva-item strong {
+  color: var(--text-primary);
+}
+
+.preditivo-erro {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  color: var(--color-perigo);
+  border: 1px solid #fecaca;
+}
+
+.preditivo-vazio,
+.preditivo-muted {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .preditivo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preditivo-metricas,
+  .preditivo-metricas.quatro {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

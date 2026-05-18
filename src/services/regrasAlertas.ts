@@ -2,8 +2,8 @@ import {
   buscarAlertaNaoResolvidoPorTipo,
   criarAlertaSessao,
   resolverAlertaSessao,
-} from "./alertasSessao";
-import { registrarLogSessao } from "./logsSessao";
+} from "../database/services/alertasSessao";
+import { registrarLogSessao } from "../database/services/logsSessao";
 
 type SessaoComParametros = {
   id: number;

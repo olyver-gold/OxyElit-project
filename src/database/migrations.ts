@@ -145,4 +145,23 @@ CREATE TABLE IF NOT EXISTS alertas_sessao (
 
 CREATE INDEX IF NOT EXISTS idx_alertas_sessao
   ON alertas_sessao(sessao_id, resolvido, criado_em);
+  
+CREATE TABLE IF NOT EXISTS avaliacao_clinica_sessao (
+  id                         INTEGER PRIMARY KEY AUTOINCREMENT,
+  sessao_id                  INTEGER NOT NULL UNIQUE REFERENCES sessoes(id),
+
+  spo2_inicial               REAL,
+  spo2_final                 REAL,
+
+  borg_inicial               REAL,
+  borg_final                 REAL,
+
+  fc_final                   REAL,
+  fc_recuperacao             REAL,
+  tempo_recuperacao_segundos INTEGER DEFAULT 60,
+
+  observacoes_clinicas       TEXT,
+
+  criado_em                  TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
