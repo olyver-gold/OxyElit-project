@@ -25,7 +25,6 @@ import ModalPosSessao from "./modals/ModalPosSessao";
 import { formatarDataHoraSQLite } from "../../utils/data";
 import { calcularDuracaoSessao } from "../../utils/data";
 
-import { LuTriangleAlert } from "react-icons/lu";
 import GraficoPressao from "../compartilhado/GraficoPressao";
 
 type Props = {
@@ -77,13 +76,13 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
 
   const {
     leiturasSensor,
-    ultimaLeitura,
+    // ultimaLeitura,
     mqttConectado,
     statusSensor,
-    erroSensor,
+    // erroSensor,
     conectarMqtt,
     desconectarMqtt,
-    limparLeituras,
+    // limparLeituras,
   } = useSensor();
 
   const metricasRespiratorias = useMemo(() => {
@@ -309,22 +308,22 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
     }
   }
 
-  async function iniciarTesteGraficoMqtt() {
-    try {
-      limparLeituras();
+  // async function iniciarTesteGraficoMqtt() {
+  //   try {
+  //     limparLeituras();
 
-      if (!mqttConectado) {
-        await conectarMqtt();
-      }
+  //     if (!mqttConectado) {
+  //       await conectarMqtt();
+  //     }
 
-      alert(
-        "Teste MQTT preparado. Agora execute o simulador Python para enviar leituras ao gráfico."
-      );
-    } catch (error) {
-      console.error("Erro ao preparar teste MQTT:", error);
-      alert("Não foi possível preparar o teste MQTT.");
-    }
-  }
+  //     alert(
+  //       "Teste MQTT preparado. Agora execute o simulador Python para enviar leituras ao gráfico."
+  //     );
+  //   } catch (error) {
+  //     console.error("Erro ao preparar teste MQTT:", error);
+  //     alert("Não foi possível preparar o teste MQTT.");
+  //   }
+  // }
 
   async function handleRegistrarAjuste(alerta: AlertaSessao) {
     if (!usuario) {

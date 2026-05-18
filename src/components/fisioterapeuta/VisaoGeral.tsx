@@ -57,8 +57,8 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
   const {
     leiturasSensor,
     // ultimaLeitura,
-    mqttConectado,
-    statusSensor,
+    // mqttConectado,
+    // statusSensor,
     // erroSensor,
     // conectarMqtt,
     // desconectarMqtt,
