@@ -13,16 +13,18 @@ async fn gravar_leitura_sensor(
     ts:        i64,
 ) -> Result<(), String> {
     let instances = app.state::<DbInstances>();
-    let pool = instances
-        .0
-        .read()
-        .await
+    
+    // CORREÇÃO: Removemos o .cloned() daqui para não tentar clonar o DbPool inteiro.
+    // Usamos apenas uma referência para ler o conteúdo com segurança.
+    let instances_map = instances.0.read().await;
+    let pool = instances_map
         .get("sqlite:oxyelit.db")
-        .cloned()
         .ok_or("Banco não encontrado")?;
 
+    // Fazemos o match por referência (&pool)
     match pool {
         DbPool::Sqlite(p) => {
+            // .clone() é chamado diretamente no pool do sqlx (p), o que é permitido e super leve!
             sqlx::query(
                 "INSERT INTO leituras_sensor (sessao_id, ts, pressao, limiar, solenoide)
                  VALUES (?, ?, ?, ?, ?)"
@@ -32,7 +34,7 @@ async fn gravar_leitura_sensor(
             .bind(pressao)
             .bind(limiar)
             .bind(solenoide)
-            .execute(&p)
+            .execute(&p.clone()) 
             .await
             .map_err(|e| format!("Erro ao gravar leitura: {e}"))?;
 
@@ -75,4 +77,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o app");
-}
+}z
