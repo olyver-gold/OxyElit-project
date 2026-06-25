@@ -142,6 +142,8 @@ pub async fn mqtt_conectar(
         }
     });
 
+    *state.client.lock().await = Some(client);
+
     Ok(())
 }
 
