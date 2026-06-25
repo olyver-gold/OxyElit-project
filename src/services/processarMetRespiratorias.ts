@@ -22,7 +22,7 @@ interface InspiracaoDetectada {
     pico: number;
 }
 
-const LIMIAR_MINIMO_INSPIRACAO = 0.25;
+const LIMIAR_MINIMO_INSPIRACAO = 2.5;
 const DURACAO_MINIMA_INSPIRACAO_MS = 250;
 const DURACAO_MINIMA_CICLO_MS = 1200;
 const DURACAO_MAXIMA_CICLO_MS = 12000;
@@ -43,10 +43,12 @@ export function processarMetricasRespiratorias(leituras: LeituraSensor[]): Metri
     const pressaoDesvioPadrao = desvioPadrao(pressoes);
 
     const maxPressao = Math.max(...pressoes);
+    const minPressao = Math.min(...pressoes);
+    const amplitude = maxPressao - minPressao;
 
-    const limiarInspiracao = Math.max(
+    const limiarInspiracao = minPressao + Math.max(
         LIMIAR_MINIMO_INSPIRACAO,
-        maxPressao * 0.20
+        amplitude * 0.20
     );
 
     const inspiracoes = detectarInspiracoes(

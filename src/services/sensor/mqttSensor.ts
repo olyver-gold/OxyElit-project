@@ -54,6 +54,7 @@ export class MqttSensorClient {
             const leitura = event.payload;
             callbacks.onLeitura?.({
                 ...leitura,
+                pressao: leitura.pressao * 10.1972, // converte para cmH2O
                 timestamp: Date.now(),   // usa hora real do PC, não millis ESP32
                 origem: "mqtt",
             });
@@ -63,7 +64,12 @@ export class MqttSensorClient {
     const unlistenMetricas = await listen<MetricasSessao>(
         "sensor://metricas",
         (event) => {
-            callbacks.onMetricas?.(event.payload);
+            const metricas = event.payload;
+            callbacks.onMetricas?.({
+                ...metricas,
+                pressao: metricas.pressao * 10.1972, // converte para cmH2O
+                pressao_media: metricas.pressao_media * 10.1972, // converte para cmH2O
+            });
         }
     );
 
