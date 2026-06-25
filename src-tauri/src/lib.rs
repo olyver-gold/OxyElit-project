@@ -77,4 +77,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o app");
-}z
+}
