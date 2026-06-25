@@ -535,7 +535,7 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
             className="btn btn-red"
             onClick={() => {
               console.log("BOTÃO ENCERRAR FOI CLICADO");
-              setModalEncerramentoAberto(true);
+              handleSolicitarEncerramento();
             }}
           >
             Encerrar sessão
