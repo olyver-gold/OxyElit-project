@@ -65,7 +65,7 @@ function ModalPosSessao({ aberto, metricas, salvando = false, onFechar, onConfir
     async function confirmarEncerramento(event: FormEvent) {
         event.preventDefault();
         setErro("");
-        
+
         if (
             !campos.spo2Inicial ||
             !campos.spo2Final ||
@@ -117,12 +117,17 @@ function ModalPosSessao({ aberto, metricas, salvando = false, onFechar, onConfir
             return;
         }
 
-        await onConfirmar(dados);
+        try {
+            await onConfirmar(dados);
+        } catch (error: any) {
+            console.error("Erro no backend ao salvar avaliação:", error);
+            setErro(error.message || "Falha ao salvar no banco de dados. Tente novamente.");
+        }
     }
 
     return (
         <div className="modal-overlay">
-            <div
+            <form
                 className="modal md"
                 onSubmit={confirmarEncerramento}
                 onClick={(e) => e.stopPropagation()}
@@ -253,6 +258,7 @@ function ModalPosSessao({ aberto, metricas, salvando = false, onFechar, onConfir
 
                 <div className="modal-footer">
                     <button
+                        type="button"
                         className="btn btn-secondary"
                         onClick={onFechar}
                         disabled={salvando}
@@ -261,6 +267,7 @@ function ModalPosSessao({ aberto, metricas, salvando = false, onFechar, onConfir
                     </button>
 
                     <button
+                        type="submit"
                         onClick={confirmarEncerramento}
                         className="btn btn-primary"
                         disabled={salvando}
@@ -268,7 +275,7 @@ function ModalPosSessao({ aberto, metricas, salvando = false, onFechar, onConfir
                         {salvando ? "Salvando..." : "Salvar e encerrar"}
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     );
 }
