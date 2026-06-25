@@ -1,18 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import {
-    ErroDispositivo,
     LeituraSensor,
+    MetricasSessao,
     MqttConfig,
-    StatusDispositivo,
 } from "./types";
 
 type CallbacksSensorMqtt = {
-    onLeitura?: (leitura: LeituraSensor) => void;
-    onStatus?: (status: StatusDispositivo) => void;
-    onErroDispositivo?: (erro: ErroDispositivo) => void;
-    onErroMqtt?: (erro: string) => void;
-    onConectado?: (conectado: boolean) => void;
+    onLeitura?:          (leitura: LeituraSensor) => void;
+    onMetricas?:         (metricas: MetricasSessao) => void;
+    onErroMqtt?:         (erro: string) => void;
+    onConectado?:        (conectado: boolean) => void;
 };
 
 export class MqttSensorClient {
@@ -54,26 +52,18 @@ export class MqttSensorClient {
         "sensor://leitura",
         (event) => {
             const leitura = event.payload;
-
             callbacks.onLeitura?.({
-            ...leitura,
-            timestamp: leitura.timestamp ?? Date.now(),
-            origem: "mqtt",
+                ...leitura,
+                timestamp: Date.now(),   // usa hora real do PC, não millis ESP32
+                origem: "mqtt",
             });
         }
     );
 
-    const unlistenStatus = await listen<StatusDispositivo>(
-        "sensor://status",
+    const unlistenMetricas = await listen<MetricasSessao>(
+        "sensor://metricas",
         (event) => {
-            callbacks.onStatus?.(event.payload);
-        }
-    );
-
-    const unlistenErroDispositivo = await listen<ErroDispositivo>(
-        "sensor://erro",
-        (event) => {
-            callbacks.onErroDispositivo?.(event.payload);
+            callbacks.onMetricas?.(event.payload);
         }
     );
 
@@ -94,8 +84,7 @@ export class MqttSensorClient {
 
     this.unlisteners.push(
         unlistenLeitura,
-        unlistenStatus,
-        unlistenErroDispositivo,
+        unlistenMetricas,
         unlistenErroMqtt,
         unlistenConectado
     );

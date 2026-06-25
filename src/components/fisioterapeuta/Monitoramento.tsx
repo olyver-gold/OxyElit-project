@@ -21,7 +21,10 @@ import { registrarAjusteValvula } from "../../database/services/ajustesValvula";
 import { criarParametrosAlvoSessao } from "../../database/services/parametros";
 import { useSensor } from "../../contexts/SensorContext";
 import { processarMetricasRespiratorias } from "../../services/processarMetRespiratorias";
-import ModalPosSessao from "./modals/ModalPosSessao";
+import { salvarMetricasSessao } from "../../database/services/metricasSessao";
+import { salvarAvaliacaoClinicaSessao } from "../../database/services/avaliacaoSessao";
+import { calcularScoreEvolucaoSessao } from "../../services/calcularScore";
+import ModalEncerramento, { DadosAvaliacaoFinal } from "./modals/ModalEncerramento";
 import { formatarDataHoraSQLite } from "../../utils/data";
 import { calcularDuracaoSessao } from "../../utils/data";
 
@@ -51,6 +54,16 @@ function gerarIniciais(nome: string): string {
   return `${primeira}${segunda}`.toUpperCase();
 }
 
+function formatarRazaoIE(ieMedia: number | null): string {
+  if (ieMedia === null || ieMedia <= 0) {
+    return "--";
+  }
+
+  const expiracao = 1 / ieMedia;
+
+  return `1:${expiracao.toFixed(1)}`;
+}
+
 function Monitoramento({ pacientePreSelecionadoId }: Props) {
   const { usuario } = useAuth();
 
@@ -69,20 +82,20 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
   const [carregandoSessao, setCarregandoSessaoAtiva] = useState(true);
   const [observacoesSessao, setObservacoesSessao] = useState("");
   const [sessaoAtiva, setSessaoAtiva] = useState<Sessao | null>(null);
-  const [sessaoEncerradaId, setSessaoEncerradaId] = useState<number | null>(null);
+  const [_sessaoEncerradaId, setSessaoEncerradaId] = useState<number | null>(null);
 
   const [alertasSessao, setAlertasSessao] = useState<AlertaSessao[]>([]);
   const [agora, setAgora] = useState(new Date());
 
   const {
     leiturasSensor,
-    // ultimaLeitura,
     mqttConectado,
     statusSensor,
-    // erroSensor,
     conectarMqtt,
     desconectarMqtt,
-    // limparLeituras,
+    limparLeituras,
+    iniciarSessao: iniciarSessaoContexto,
+    encerrarSessao: encerrarSessaoContexto,
   } = useSensor();
 
   const metricasRespiratorias = useMemo(() => {
@@ -97,7 +110,9 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
 
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(false);
-  const [modalPosSessaoAberto, setModalPosSessaoAberto] = useState(false);
+  const [modalEncerramentoAberto, setModalEncerramentoAberto] = useState(false);
+
+  const [salvandoEncerramento, setSalvandoEncerramento] = useState(false);
 
   async function carregarDadosIniciais() {
     if (!usuario) {
@@ -294,7 +309,12 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
 
       console.log("SESSÃO CRIADA:", novaSessao);
 
+      limparLeituras();
       setSessaoAtiva(novaSessao);
+
+      if (novaSessao && novaSessao.id) {
+        iniciarSessaoContexto(novaSessao.id);
+      }
     } catch (error) {
       console.error("ERRO COMPLETO AO INICIAR SESSÃO:", error);
 
@@ -378,39 +398,119 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
     }
   }
   
-  async function handleEncerrarSessao() {
+  function handleSolicitarEncerramento() {
     if (!usuario) {
-      alert("Usuário não autenticado");
+      alert("Usuário não autenticado.");
       return;
     }
-    if (!sessaoAtiva) {
-      alert("Nenhuma sessão ativa para encerrar");
-      return;
-    }
-    
-    const confirmacao = window.confirm("Tem certeza que deseja encerrar a sessão?");
 
-    if (!confirmacao) return;
+    if (!sessaoAtiva) {
+      alert("Nenhuma sessão ativa para encerrar.");
+      return;
+    }
+
+    if (metricasRespiratorias.totalCiclos < 3) {
+      alert(
+        "Ainda não há ciclos respiratórios suficientes para consolidar os dados da sessão."
+      );
+      return;
+    }
+
+    setModalEncerramentoAberto(true);
+  }
+
+  async function handleConfirmarEncerramento( avaliacao: DadosAvaliacaoFinal ) {
+    if (!usuario) {
+      alert("Usuário não autenticado.");
+      return;
+    }
+
+    if (!sessaoAtiva) {
+      alert("Nenhuma sessão ativa encontrada.");
+      return;
+    }
+
+    if (metricasRespiratorias.totalCiclos < 3) {
+      alert(
+        "A sessão ainda não possui ciclos respiratórios suficientes para calcular as métricas."
+      );
+      return;
+    }
 
     try {
-      setCarregando(true);
+      setSalvandoEncerramento(true);
 
       const idEncerrado = sessaoAtiva.id;
-      await encerrarSessao(idEncerrado);
 
-      // futuramente:
-      // await calcularMetricasSessao(idEncerrado);
-      // await atualizarScoreEvolucaoPaciente(sessaoAtiva.paciente_id, idEncerrado);
+      const frMinAlvo = sessaoAtiva.fr_min;
+      const frMaxAlvo = sessaoAtiva.fr_max;
+      const ieInspiracaoAlvo = sessaoAtiva.ie_inspiracao;
+      const ieExpiracaoAlvo = sessaoAtiva.ie_expiracao;
+
+      const resultadoScore = calcularScoreEvolucaoSessao({
+        frMedia: metricasRespiratorias.frMedia,
+        frMin: frMinAlvo,
+        frMax: frMaxAlvo,
+
+        frDesvioPadrao: metricasRespiratorias.frDesvioPadrao,
+
+        ieMedia: metricasRespiratorias.ieMedia,
+        ieInspiracaoAlvo,
+        ieExpiracaoAlvo,
+
+        spo2Inicial: avaliacao.spo2Inicial,
+        spo2Final: avaliacao.spo2Final,
+
+        borgInicial: avaliacao.borgInicial,
+        borgFinal: avaliacao.borgFinal,
+
+        fcFinal: avaliacao.fcFinal,
+        fcRecuperacao: avaliacao.fcRecuperacao,
+      });
+
+      await salvarAvaliacaoClinicaSessao({
+        sessaoId: idEncerrado,
+
+        spo2Inicial: avaliacao.spo2Inicial,
+        spo2Final: avaliacao.spo2Final,
+
+        borgInicial: avaliacao.borgInicial,
+        borgFinal: avaliacao.borgFinal,
+
+        fcFinal: avaliacao.fcFinal,
+        fcRecuperacao: avaliacao.fcRecuperacao,
+
+        tempoRecuperacaoSegundos: 60,
+      });
+
+      await salvarMetricasSessao({
+        sessaoId: idEncerrado,
+        metricas: metricasRespiratorias,
+        scoreEvolucao: resultadoScore.score,
+      });
+
+      await encerrarSessao(sessaoAtiva.id);
+
+      limparLeituras();
+      encerrarSessaoContexto();
 
       setSessaoEncerradaId(idEncerrado);
+
+      setModalEncerramentoAberto(false);
       setSessaoAtiva(null);
       setPacienteSelecionado(null);
-      setModalPosSessaoAberto(true);
+      setAlertasSessao([]);
+
+      alert(
+        `Sessão encerrada com sucesso. Score calculado: ${
+          resultadoScore.score?.toFixed(1) ?? "não disponível"
+        }`
+      );
     } catch (error) {
-      console.error("Erro ao encerrar sessão:", error);
-      alert("Não foi possível encerrar a sessão");
+      console.error("Erro ao encerrar sessão com métricas:", error);
+      alert("Não foi possível salvar os dados e encerrar a sessão.");
     } finally {
-      setCarregando(false);
+      setSalvandoEncerramento(false);
     }
   }
 
@@ -433,8 +533,10 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
           </div>
           <button 
             className="btn btn-red"
-            onClick={handleEncerrarSessao}
-            disabled={carregando}
+            onClick={() => {
+              console.log("BOTÃO ENCERRAR FOI CLICADO");
+              setModalEncerramentoAberto(true);
+            }}
           >
             Encerrar sessão
           </button>
@@ -498,9 +600,7 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
                 <div className="metrica-card">
                   <span className="metrica-label">Razão I:E</span>
                   <strong className="metrica-valor">
-                    {metricasRespiratorias.ieMedia !== null
-                      ? metricasRespiratorias.ieMedia.toFixed(2)
-                      : "--"}
+                    {formatarRazaoIE(metricasRespiratorias.ieMedia)}
                   </strong>
                   <span className="metrica-unidade">estimada</span>
                 </div>
@@ -577,6 +677,15 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
           </div>
 
         </div>
+
+        <ModalEncerramento
+          aberto={modalEncerramentoAberto}
+          metricas={metricasRespiratorias}
+          salvando={salvandoEncerramento}
+          onFechar={() => setModalEncerramentoAberto(false)}
+          onConfirmar={handleConfirmarEncerramento}
+        />
+
       </div>
     );  
   }
@@ -754,22 +863,6 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
           </button>
                 </div>
         </div>
-
-        {modalPosSessaoAberto && sessaoEncerradaId && (
-          <ModalPosSessao
-            // sessaoId={sessaoEncerradaId}
-            onFechar={() => setModalPosSessaoAberto(false)}
-            // onAnalisePreditiva={() => {
-            //   setModalPosSessaoAberto(false);
-            //   // onNavegar(4) ou página preditiva/análises
-            // }}
-            // onHistorico={() => {
-            //   setModalPosSessaoAberto(false);
-            //   // abrir histórico do paciente
-            // }}
-          />
-        )}
-
     </div>
   );
 }

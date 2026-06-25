@@ -16,168 +16,196 @@ export interface MetricasRespiratorias {
     ciclosAtipicos: number;
 }
 
-type CicloRespiratorio = {
+interface InspiracaoDetectada {
     inicio: number;
-    pico: number;
     fim: number;
-    pressaoPico: number;
-    duracao: number;
-};
+    pico: number;
+}
 
-export function processarMetricasRespiratorias( leituras: LeituraSensor[] ): MetricasRespiratorias {
-    if (leituras.length < 5) {
-        return criarMetricasVazias();
+const LIMIAR_MINIMO_INSPIRACAO = 0.25;
+const DURACAO_MINIMA_INSPIRACAO_MS = 250;
+const DURACAO_MINIMA_CICLO_MS = 1200;
+const DURACAO_MAXIMA_CICLO_MS = 12000;
+
+export function processarMetricasRespiratorias(leituras: LeituraSensor[]): MetricasRespiratorias {
+    if (leituras.length < 10) {
+        return metricasVazias();
     }
 
-    const leiturasOrdenadas = [...leituras].sort(
+    const ordenadas = [...leituras].sort(
         (a, b) => a.timestamp - b.timestamp
     );
 
-    const pressoes = leiturasOrdenadas.map((l) => l.pressao);
+    const suavizadas = aplicarMediaMovel(ordenadas, 3);
+    const pressoes = suavizadas.map((leitura) => leitura.pressao);
 
-    const pressaoMedia = calcularMedia(pressoes);
-    const pressaoDesvioPadrao = calcularDesvioPadrao(pressoes);
+    const pressaoMedia = media(pressoes);
+    const pressaoDesvioPadrao = desvioPadrao(pressoes);
 
-    const ciclos = detectarCiclos(leiturasOrdenadas);
+    const maxPressao = Math.max(...pressoes);
 
-    const totalCiclos = ciclos.length;
+    const limiarInspiracao = Math.max(
+        LIMIAR_MINIMO_INSPIRACAO,
+        maxPressao * 0.20
+    );
 
-    if (totalCiclos < 2) {
+    const inspiracoes = detectarInspiracoes(
+        suavizadas,
+        limiarInspiracao
+    );
+
+    if (inspiracoes.length < 2) {
         return {
-        ...criarMetricasVazias(),
-        pressaoMedia,
-        pressaoDesvioPadrao,
-        totalCiclos,
-        ciclosAtipicos: 0,
+        ...metricasVazias(),
+        pressaoMedia: arredondar(pressaoMedia),
+        pressaoDesvioPadrao: arredondar(pressaoDesvioPadrao),
+        totalCiclos: inspiracoes.length,
         };
     }
 
-    const duracoesCiclosSegundos = ciclos.map((ciclo) => ciclo.duracao / 1000);
+    const frequencias: number[] = [];
+    const temposInspiratorios: number[] = [];
+    const temposExpiratorios: number[] = [];
+    const razoesIE: number[] = [];
 
-    const frPorCiclo = duracoesCiclosSegundos
-        .filter((duracao) => duracao > 0)
-        .map((duracao) => 60 / duracao);
+    let ciclosAtipicos = 0;
 
-    const frMedia = calcularMedia(frPorCiclo);
-    const frDesvioPadrao = calcularDesvioPadrao(frPorCiclo);
+    for (let i = 0; i < inspiracoes.length - 1; i++) {
+        const atual = inspiracoes[i];
+        const proxima = inspiracoes[i + 1];
 
-    const frAtual =
-        frPorCiclo.length > 0 ? frPorCiclo[frPorCiclo.length - 1] : null;
+        const duracaoCicloMs = proxima.inicio - atual.inicio;
 
-    const ciclosAtipicos = ciclos.filter((ciclo) => {
-        const duracaoSegundos = ciclo.duracao / 1000;
+        if (
+        duracaoCicloMs < DURACAO_MINIMA_CICLO_MS ||
+        duracaoCicloMs > DURACAO_MAXIMA_CICLO_MS
+        ) {
+        ciclosAtipicos++;
+        continue;
+        }
 
-        return duracaoSegundos < 1.5 || duracaoSegundos > 8;
-    }).length;
+        const tiSegundos = (atual.fim - atual.inicio) / 1000;
+        const teSegundos = (proxima.inicio - atual.fim) / 1000;
+
+        if (tiSegundos <= 0 || teSegundos <= 0) {
+        ciclosAtipicos++;
+        continue;
+        }
+
+        const fr = 60000 / duracaoCicloMs;
+        const ie = tiSegundos / teSegundos;
+
+        frequencias.push(fr);
+        temposInspiratorios.push(tiSegundos);
+        temposExpiratorios.push(teSegundos);
+        razoesIE.push(ie);
+
+        if (fr < 6 || fr > 35) {
+        ciclosAtipicos++;
+        }
+    }
+
+    if (frequencias.length === 0) {
+        return {
+        ...metricasVazias(),
+        pressaoMedia: arredondar(pressaoMedia),
+        pressaoDesvioPadrao: arredondar(pressaoDesvioPadrao),
+        totalCiclos: inspiracoes.length,
+        ciclosAtipicos,
+        };
+    }
 
     return {
-        frAtual: arredondar(frAtual),
-        frMedia: arredondar(frMedia),
-        frDesvioPadrao: arredondar(frDesvioPadrao),
+        frAtual: arredondar(frequencias[frequencias.length - 1]),
+        frMedia: arredondar(media(frequencias)),
+        frDesvioPadrao: arredondar(desvioPadrao(frequencias)),
 
-        // Esta primeira versão ainda não calcula Ti/Te de forma robusta.
-        // Vamos preencher depois com detecção de fase inspiratória/expiratória.
-        ieMedia: null,
-        tiMedio: null,
-        teMedio: null,
+        ieMedia: arredondar(media(razoesIE)),
+        tiMedio: arredondar(media(temposInspiratorios)),
+        teMedio: arredondar(media(temposExpiratorios)),
 
         pressaoMedia: arredondar(pressaoMedia),
         pressaoDesvioPadrao: arredondar(pressaoDesvioPadrao),
 
-        totalCiclos,
+        totalCiclos: frequencias.length,
         ciclosAtipicos,
     };
 }
 
-function detectarCiclos(leituras: LeituraSensor[]): CicloRespiratorio[] {
-    const ciclos: CicloRespiratorio[] = [];
+function detectarInspiracoes(leituras: LeituraSensor[], limiar: number): InspiracaoDetectada[] {
+    const inspiracoes: InspiracaoDetectada[] = [];
 
-    if (leituras.length < 5) return ciclos;
+    let emInspiracao = false;
+    let inicio = 0;
+    let pico = Number.NEGATIVE_INFINITY;
 
-    const pressoes = leituras.map((l) => l.pressao);
+    for (let i = 0; i < leituras.length; i++) {
+        const leitura = leituras[i];
 
-    const pressaoMedia = calcularMedia(pressoes) ?? 0;
-    const pressaoMax = Math.max(...pressoes);
-
-    const limiarPico = pressaoMedia + (pressaoMax - pressaoMedia) * 0.45;
-
-    let ultimoPicoTimestamp = 0;
-
-    for (let i = 1; i < leituras.length - 1; i++) {
-        const anterior = leituras[i - 1];
-        const atual = leituras[i];
-        const proxima = leituras[i + 1];
-
-        const ehPico =
-        atual.pressao > anterior.pressao &&
-        atual.pressao >= proxima.pressao &&
-        atual.pressao >= limiarPico;
-
-        if (!ehPico) continue;
-
-        const distanciaMinimaEntrePicosMs = 1500;
-
-        if (atual.timestamp - ultimoPicoTimestamp < distanciaMinimaEntrePicosMs) {
-            continue;
+        if (!emInspiracao && leitura.pressao >= limiar) {
+        emInspiracao = true;
+        inicio = leitura.timestamp;
+        pico = leitura.pressao;
+        continue;
         }
 
-        ultimoPicoTimestamp = atual.timestamp;
+        if (emInspiracao) {
+        pico = Math.max(pico, leitura.pressao);
 
-        const pico = atual.timestamp;
+        if (leitura.pressao < limiar) {
+            const fim = leitura.timestamp;
+            const duracao = fim - inicio;
 
-        const inicio = buscarInicioCiclo(leituras, i, pressaoMedia);
-        const fim = buscarFimCiclo(leituras, i, pressaoMedia);
+            if (duracao >= DURACAO_MINIMA_INSPIRACAO_MS) {
+            inspiracoes.push({
+                inicio,
+                fim,
+                pico,
+            });
+            }
 
-        ciclos.push({
-            inicio,
-            pico,
-            fim,
-            pressaoPico: atual.pressao,
-            duracao: fim - inicio,
-        });
+            emInspiracao = false;
+        }
+        }
     }
 
-    return ciclos.filter((ciclo) => ciclo.duracao > 0);
+    return inspiracoes;
 }
 
-function buscarInicioCiclo( leituras: LeituraSensor[], indicePico: number, linhaBase: number ): number {
-    for (let i = indicePico; i >= 0; i--) {
-        if (leituras[i].pressao <= linhaBase) {
-        return leituras[i].timestamp;
-        }
-    }
+function aplicarMediaMovel(leituras: LeituraSensor[], tamanhoJanela: number): LeituraSensor[] {
+    return leituras.map((leitura, indice) => {
+        const inicio = Math.max(0, indice - tamanhoJanela + 1);
+        const janela = leituras.slice(inicio, indice + 1);
 
-    return leituras[Math.max(0, indicePico - 1)].timestamp;
+        const pressaoMedia =
+        janela.reduce((soma, item) => soma + item.pressao, 0) /
+        janela.length;
+
+        return {
+        ...leitura,
+        pressao: pressaoMedia,
+        };
+    });
 }
 
-function buscarFimCiclo( leituras: LeituraSensor[], indicePico: number, linhaBase: number ): number {
-    for (let i = indicePico; i < leituras.length; i++) {
-        if (leituras[i].pressao <= linhaBase) {
-        return leituras[i].timestamp;
-        }
-    }
-
-    return leituras[Math.min(leituras.length - 1, indicePico + 1)].timestamp;
-    }
-
-function calcularMedia(valores: number[]): number | null {
+function media(valores: number[]): number | null {
     if (valores.length === 0) return null;
 
-    const soma = valores.reduce((total, valor) => total + valor, 0);
+    return valores.reduce((soma, valor) => soma + valor, 0) / valores.length;
+}
 
-    return soma / valores.length;
-    }
-
-function calcularDesvioPadrao(valores: number[]): number | null {
+function desvioPadrao(valores: number[]): number | null {
     if (valores.length < 2) return null;
 
-    const media = calcularMedia(valores);
+    const valorMedio = media(valores);
 
-    if (media === null) return null;
+    if (valorMedio === null) return null;
 
     const variancia =
-        valores.reduce((total, valor) => total + Math.pow(valor - media, 2), 0) /
-        valores.length;
+        valores.reduce(
+        (soma, valor) => soma + Math.pow(valor - valorMedio, 2),
+        0
+        ) / valores.length;
 
     return Math.sqrt(variancia);
 }
@@ -188,7 +216,7 @@ function arredondar(valor: number | null): number | null {
     return Number(valor.toFixed(2));
 }
 
-function criarMetricasVazias(): MetricasRespiratorias {
+function metricasVazias(): MetricasRespiratorias {
     return {
         frAtual: null,
         frMedia: null,

@@ -2,6 +2,8 @@ import { getDb } from "../db";
 
 export type StatusSessao = 'ativa' | 'encerrada' | 'cancelada';
 
+export type OrigemDadosSessao = 'real' | 'simulado_mqtt';
+
 export interface Sessao {
     id: number;
     paciente_id: number;
@@ -22,6 +24,9 @@ export interface Sessao {
     ie_expiracao: number | null;
     pressao_min: number | null;
     pressao_max: number | null;
+
+    origem_dados: OrigemDadosSessao;
+    cenario_simulado: string | null;
 }
 
 export async function debugValidarIds(

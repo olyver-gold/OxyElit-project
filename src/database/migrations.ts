@@ -87,7 +87,8 @@ export const migrations = `
     total_ciclos          INTEGER,
     ciclos_atipicos       INTEGER DEFAULT 0,
     score_evolucao        REAL,
-    calculado_em          TEXT    NOT NULL DEFAULT (datetime('now'))
+    calculado_em          TEXT NOT NULL DEFAULT (datetime('now')),
+    origem_dados          TEXT NOT NULL DEFAULT 'sensor'
   );
 
   CREATE TABLE IF NOT EXISTS ajustes_valvula (
@@ -163,5 +164,25 @@ CREATE TABLE IF NOT EXISTS avaliacao_clinica_sessao (
   observacoes_clinicas       TEXT,
 
   criado_em                  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS leituras_sensor (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    sessao_id INTEGER NOT NULL,
+
+    ts INTEGER NOT NULL,
+
+    pressao REAL NOT NULL,
+
+    limiar REAL NOT NULL,
+
+    solenoide INTEGER NOT NULL,
+
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(sessao_id)
+        REFERENCES sessoes(id)
+        ON DELETE CASCADE
 );
 `;

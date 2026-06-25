@@ -5,30 +5,22 @@ use tauri::{AppHandle, Emitter, State};
 use tokio::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeituraSensorMqtt {
-    #[serde(rename = "deviceId")]
-    pub device_id: String,
-    pub timestamp: Option<i64>,
+pub struct SensorPayload {
     pub pressao: f64,
-    pub unidade: String,
+    pub limiar: f64,
+    pub solenoide: u8,
+    pub ts: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StatusDispositivoMqtt {
-    #[serde(rename = "deviceId")]
-    pub device_id: String,
-    pub status: String,
-    pub rssi: Option<i32>,
-    pub timestamp: Option<i64>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErroDispositivoMqtt {
-    #[serde(rename = "deviceId")]
-    pub device_id: String,
-    pub codigo: String,
-    pub mensagem: String,
-    pub timestamp: Option<i64>,
+pub struct MetricasPayload {
+    pub inspiracao:    u32,
+    pub pressao:       f64,
+    pub limiar:        f64,
+    pub freq:          f64,
+    pub freq_media:    f64,
+    pub pressao_media: f64,
+    pub ts:            u64,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -75,29 +67,15 @@ pub async fn mqtt_conectar(
 
     let (client, mut eventloop) = AsyncClient::new(mqtt_options, 10);
 
-    let leituras_topic = format!("oxyelit/dispositivos/{}/leituras", config.device_id);
-    let status_topic = format!("oxyelit/dispositivos/{}/status", config.device_id);
-    let erro_topic = format!("oxyelit/dispositivos/{}/erro", config.device_id);
+    client
+        .subscribe("oxyelit/sensor", QoS::AtMostOnce)
+        .await
+        .map_err(|e| format!("Erro ao assinar sensor: {e}"))?;
 
     client
-        .subscribe(leituras_topic.clone(), QoS::AtMostOnce)
+        .subscribe("oxyelit/metricas", QoS::AtMostOnce)
         .await
-        .map_err(|e| format!("Erro ao assinar leituras: {e}"))?;
-
-    client
-        .subscribe(status_topic.clone(), QoS::AtLeastOnce)
-        .await
-        .map_err(|e| format!("Erro ao assinar status: {e}"))?;
-
-    client
-        .subscribe(erro_topic.clone(), QoS::AtLeastOnce)
-        .await
-        .map_err(|e| format!("Erro ao assinar erro: {e}"))?;
-
-    {
-        let mut guard = state.client.lock().await;
-        *guard = Some(client.clone());
-    }
+        .map_err(|e| format!("Erro ao assinar metricas: {e}"))?;
 
     app.emit("mqtt://conectado", true)
         .map_err(|e| format!("Erro ao emitir evento conectado: {e}"))?;
@@ -121,39 +99,27 @@ pub async fn mqtt_conectar(
                         }
                     };
 
-                    if topic.ends_with("/leituras") {
-                        match serde_json::from_str::<LeituraSensorMqtt>(&payload_text) {
-                            Ok(leitura) => {
-                                let _ = app_clone.emit("sensor://leitura", leitura);
+                    if topic == "oxyelit/sensor" {
+                        match serde_json::from_str::<SensorPayload>(&payload_text) {
+                            Ok(dados) => {
+                                let _ = app_clone.emit("sensor://leitura", dados);
                             }
                             Err(e) => {
                                 let _ = app_clone.emit(
                                     "mqtt://erro",
-                                    format!("Erro ao interpretar leitura: {e}"),
+                                    format!("Erro ao interpretar sensor: {e}"),
                                 );
                             }
                         }
-                    } else if topic.ends_with("/status") {
-                        match serde_json::from_str::<StatusDispositivoMqtt>(&payload_text) {
-                            Ok(status) => {
-                                let _ = app_clone.emit("sensor://status", status);
+                    } else if topic == "oxyelit/metricas" {
+                        match serde_json::from_str::<MetricasPayload>(&payload_text) {
+                            Ok(dados) => {
+                                let _ = app_clone.emit("sensor://metricas", dados);
                             }
                             Err(e) => {
                                 let _ = app_clone.emit(
                                     "mqtt://erro",
-                                    format!("Erro ao interpretar status: {e}"),
-                                );
-                            }
-                        }
-                    } else if topic.ends_with("/erro") {
-                        match serde_json::from_str::<ErroDispositivoMqtt>(&payload_text) {
-                            Ok(erro) => {
-                                let _ = app_clone.emit("sensor://erro", erro);
-                            }
-                            Err(e) => {
-                                let _ = app_clone.emit(
-                                    "mqtt://erro",
-                                    format!("Erro ao interpretar erro: {e}"),
+                                    format!("Erro ao interpretar metricas: {e}"),
                                 );
                             }
                         }

@@ -1,25 +1,23 @@
 export type UnidadePressao = "cmH2O" | "Pa";
+export type OrigemLeitura = "mqtt" | "simulado";
 
 export interface LeituraSensor {
-    deviceId: string;
-    timestamp: number;
-    pressao: number;
-    unidade: UnidadePressao;
-    origem: "mqtt" | "simulado";
+    pressao:   number;
+    limiar:    number;
+    solenoide: number;      // 0 = desligada, 1 = ativa
+    ts:        number;      // millis do ESP32 (usado só para intervalo)
+    timestamp: number;      // Unix ms — preenchido pelo frontend no onLeitura
+    origem:    OrigemLeitura;
 }
 
-export interface StatusDispositivo {
-    deviceId: string;
-    status: "online" | "offline" | "erro" | string;
-    rssi?: number;
-    timestamp?: number;
-}
-
-export interface ErroDispositivo {
-    deviceId: string;
-    codigo: string;
-    mensagem: string;
-    timestamp?: number;
+export interface MetricasSessao {
+    inspiracao:    number;   // contador sequencial da sessão
+    pressao:       number;   // pressão no disparo (kPa)
+    limiar:        number;   // limiar cruzado (V)
+    freq:          number;   // FR instantânea (rpm)
+    freq_media:    number;   // FR média da sessão
+    pressao_media: number;   // pressão média da sessão
+    ts:            number;   // millis do ESP32
 }
 
 export interface MqttConfig {

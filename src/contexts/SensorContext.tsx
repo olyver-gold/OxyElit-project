@@ -4,134 +4,134 @@ import {
     useContext,
     useRef,
     useState,
+    useEffect
 } from "react";
-
+import { invoke } from "@tauri-apps/api/core";
 import { MqttSensorClient } from "../services/sensor/mqttSensor";
 import {
-    ErroDispositivo,
     LeituraSensor,
-    StatusDispositivo,
+    MetricasSessao,
 } from "../services/sensor/types";
 
 type SensorContextType = {
-    leiturasSensor: LeituraSensor[];
-    ultimaLeitura: LeituraSensor | null;
+    leiturasSensor:  LeituraSensor[];
+    ultimaLeitura:   LeituraSensor | null;
+    metricasSessao:  MetricasSessao | null;
 
-    mqttConectado: boolean;
-    statusSensor: string;
-    erroSensor: string | null;
+    sessaoAtivaId:   number | null;              
+    iniciarSessao:   (id: number) => void;        
+    encerrarSessao:  () => void;                  
 
-    conectarMqtt: () => Promise<void>;
+    mqttConectado:   boolean;
+    statusSensor:    string;
+    erroSensor:      string | null;
+
+    conectarMqtt:    () => Promise<void>;
     desconectarMqtt: () => Promise<void>;
-    limparLeituras: () => void;
+    limparLeituras:  () => void;
 };
 
 const SensorContext = createContext<SensorContextType | null>(null);
 
-const LIMITE_BUFFER_MS = 5 * 60 * 1000;
-
 export function SensorProvider({ children }: { children: ReactNode }) {
-    const mqttClientRef = useRef<MqttSensorClient | null>(null);
+    // Instancia o cliente MQTT de forma a persistir entre renderizações
+    const mqttClientRef = useRef<MqttSensorClient>(new MqttSensorClient());
 
     const [leiturasSensor, setLeiturasSensor] = useState<LeituraSensor[]>([]);
     const [ultimaLeitura, setUltimaLeitura] = useState<LeituraSensor | null>(null);
+    const [metricasSessao, setMetricasSessao] = useState<MetricasSessao | null>(null);
+
+    // Gestão da Sessão
+    const [sessaoAtivaId, setSessaoAtivaId] = useState<number | null>(null);
 
     const [mqttConectado, setMqttConectado] = useState(false);
     const [statusSensor, setStatusSensor] = useState("desconectado");
     const [erroSensor, setErroSensor] = useState<string | null>(null);
 
+    const sessaoAtualRef = useRef<number | null>(null);
+    useEffect(() => {
+        sessaoAtualRef.current = sessaoAtivaId;
+    }, [sessaoAtivaId]);
+
+    function iniciarSessao(id: number) {
+        setSessaoAtivaId(id);
+    }
+
+    function encerrarSessao() {
+        setSessaoAtivaId(null);
+    }
+
     async function conectarMqtt() {
         try {
+            setStatusSensor("conectando");
             setErroSensor(null);
 
-            if (!mqttClientRef.current) {
-                mqttClientRef.current = new MqttSensorClient();
-            }
+            const config = {
+                host: "localhost",
+                port: 1883,
+                client_id: "desktop_app_" + Math.random().toString(16).substring(2, 8),
+                device_id: "esp32-001"
+            };
 
-            await mqttClientRef.current.conectar(
-                {
-                    host: "localhost",
-                    port: 1883,
-                    client_id: `oxyelit-app-${Date.now()}`,
-                    device_id: "esp32-001",
-                    },
-                {
-                onConectado: (conectado: boolean) => {
-                    console.log("MQTT conectado?", conectado);
+            await mqttClientRef.current.conectar(config, {
+                onLeitura: (leitura) => {
+                    setUltimaLeitura(leitura);
+                    
+                    setLeiturasSensor((prev) => {
+                        const novaLista = [...prev, leitura];
+                        // Limite de pontos para o gráfico ser super fluido (150 pontos = 30 seg a 5Hz)
+                        if (novaLista.length > 150) novaLista.shift();
+                        return novaLista;
+                    });
 
+                    // Se houver uma sessão a decorrer, grava imediatamente no SQLite via Rust!
+                    if (sessaoAtualRef.current !== null) {
+                        invoke("gravar_leitura_sensor", {
+                            sessaoId: sessaoAtualRef.current,
+                            pressao: leitura.pressao,
+                            limiar: leitura.limiar,
+                            solenoide: leitura.solenoide,
+                            ts: leitura.ts
+                        }).catch((err) => console.error("Erro no background ao guardar telemetria:", err));
+                    }
+                },
+                onMetricas: (metricas) => {
+                    setMetricasSessao(metricas);
+                },
+                onConectado: (conectado) => {
                     setMqttConectado(conectado);
                     setStatusSensor(conectado ? "conectado" : "desconectado");
                 },
-
-                onLeitura: (leitura: LeituraSensor) => {
-                    console.log("LEITURA MQTT RECEBIDA:", leitura);
-
-                    const leituraNormalizada: LeituraSensor = {
-                        ...leitura,
-                        timestamp: leitura.timestamp ?? Date.now(),
-                        origem: "mqtt",
-                    };
-
-                    setUltimaLeitura(leituraNormalizada);
-
-                    setLeiturasSensor((anteriores) => {
-                    const proximas = [...anteriores, leituraNormalizada];
-
-                    const limiteTempo = Date.now() - LIMITE_BUFFER_MS;
-
-                    return proximas.filter(
-                        (item) => item.timestamp >= limiteTempo
-                    );
-                });
-            },
-            onStatus: (status: StatusDispositivo) => {
-                console.log("STATUS MQTT:", status);
-
-                setStatusSensor(status.status);
-            },
-
-            onErroDispositivo: (erro: ErroDispositivo) => {
-                console.error("ERRO DO DISPOSITIVO:", erro);
-
-                setStatusSensor("erro");
-                setErroSensor(erro.mensagem);
-            },
-
-            onErroMqtt: (erro: string) => {
-                    console.error("ERRO MQTT:", erro);
-
-                    setStatusSensor("erro mqtt");
+                onErroMqtt: (erro) => {
+                    console.error("Broker MQTT reportou erro:", erro);
                     setErroSensor(erro);
-                },
+                    setStatusSensor("erro mqtt");
                 }
-            );
-        } catch (error) {
-            console.error("Erro ao conectar MQTT:", error);
+            });
 
+        } catch (error) {
+            console.error("Erro fatal ao ligar MQTT:", error);
             setMqttConectado(false);
             setStatusSensor("erro mqtt");
-            setErroSensor("Não foi possível conectar ao broker MQTT.");
-
-            throw error;
+            setErroSensor("Não foi possível estabelecer ligação ao broker MQTT.");
         }
     }
 
     async function desconectarMqtt() {
         try {
             await mqttClientRef.current?.desconectar();
-
             setMqttConectado(false);
             setStatusSensor("desconectado");
         } catch (error) {
-            console.error("Erro ao desconectar MQTT:", error);
-
-            setErroSensor("Erro ao desconectar MQTT.");
+            console.error("Falha ao desligar MQTT:", error);
+            setErroSensor("Ocorreu um erro ao desligar o MQTT.");
         }
     }
 
     function limparLeituras() {
         setLeiturasSensor([]);
         setUltimaLeitura(null);
+        setMetricasSessao(null);
     }
 
     return (
@@ -139,6 +139,11 @@ export function SensorProvider({ children }: { children: ReactNode }) {
             value={{
                 leiturasSensor,
                 ultimaLeitura,
+                metricasSessao,
+
+                sessaoAtivaId,
+                iniciarSessao,
+                encerrarSessao,
 
                 mqttConectado,
                 statusSensor,
@@ -156,10 +161,8 @@ export function SensorProvider({ children }: { children: ReactNode }) {
 
 export function useSensor() {
     const ctx = useContext(SensorContext);
-
     if (!ctx) {
-        throw new Error("useSensor deve ser usado dentro de SensorProvider");
+        throw new Error("useSensor tem de ser usado dentro de um SensorProvider");
     }
-
     return ctx;
 }
