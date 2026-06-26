@@ -436,9 +436,7 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
       const ieInspiracaoAlvo = sessaoAtiva.ie_inspiracao ?? null;
       const ieExpiracaoAlvo = sessaoAtiva.ie_expiracao ?? null;
 
-      // =========================================================================
       // FUNÇÃO DE PROTEÇÃO: Garante que valores inválidos ou NaN virem null para o banco
-      // =========================================================================
       const tratarNumero = (valor: any) => {
         const num = Number(valor);
         return Number.isNaN(num) || valor === null || valor === undefined ? null : num;
@@ -685,10 +683,10 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
                 </div>
               </div>
 
-              <div className="card painel-card">
+              {/* <div className="card painel-card">
                 <h3>Log da sessão</h3>
-                {/* conteúdo */}
-              </div>
+                
+              </div> */}
             </div>
           </div>
 

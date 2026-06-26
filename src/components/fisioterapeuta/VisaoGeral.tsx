@@ -393,7 +393,7 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
                 </div>
               </div>
 
-              <div className="card-log">
+              {/* <div className="card-log">
                 <span className="card-log-titulo">Log da sessão</span>
                 <div className="log-lista">
                   <div className="log-item">
@@ -409,7 +409,7 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
                     <span className="log-texto">Ajuste da válvula</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           ) : (
             <div className="visao-col-direita">
