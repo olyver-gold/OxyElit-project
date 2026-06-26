@@ -32,36 +32,25 @@ export function processarMetricasRespiratorias(leituras: LeituraSensor[]): Metri
         return metricasVazias();
     }
 
-    const ordenadas = [...leituras].sort(
-        (a, b) => a.timestamp - b.timestamp
-    );
-
+    const ordenadas = [...leituras].sort((a, b) => a.timestamp - b.timestamp);
     const suavizadas = aplicarMediaMovel(ordenadas, 3);
     const pressoes = suavizadas.map((leitura) => leitura.pressao);
-
-    const pressaoMedia = media(pressoes);
-    const pressaoDesvioPadrao = desvioPadrao(pressoes);
-
     const maxPressao = Math.max(...pressoes);
-    const minPressao = Math.min(...pressoes);
-    const amplitude = maxPressao - minPressao;
 
-    const limiarInspiracao = minPressao + Math.max(
-        LIMIAR_MINIMO_INSPIRACAO,
-        amplitude * 0.20
-    );
+    const limiarInspiracao = Math.max(LIMIAR_MINIMO_INSPIRACAO, maxPressao * 0.20);
+    const inspiracoes = detectarInspiracoes(suavizadas, limiarInspiracao);
 
-    const inspiracoes = detectarInspiracoes(
-        suavizadas,
-        limiarInspiracao
-    );
+    // NOVIDADE: A Pressão Média agora é a média dos PICOS atingidos, não da linha inteira!
+    const picos = inspiracoes.map(i => i.pico);
+    const pressaoMedia = picos.length > 0 ? media(picos) : media(pressoes);
+    const pressaoDesvioPadrao = picos.length > 1 ? desvioPadrao(picos) : 0;
 
     if (inspiracoes.length < 2) {
         return {
-        ...metricasVazias(),
-        pressaoMedia: arredondar(pressaoMedia),
-        pressaoDesvioPadrao: arredondar(pressaoDesvioPadrao),
-        totalCiclos: inspiracoes.length,
+            ...metricasVazias(),
+            pressaoMedia: arredondar(pressaoMedia),
+            pressaoDesvioPadrao: arredondar(pressaoDesvioPadrao),
+            totalCiclos: inspiracoes.length,
         };
     }
 

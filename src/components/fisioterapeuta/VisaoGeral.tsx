@@ -33,6 +33,19 @@ function formatarTendencia(tendencia: string | null) {
   return mapa[tendencia] ?? tendencia;
 }
 
+function formatarRazaoIE(valorIE: number | null): string {
+  if (valorIE === null || valorIE <= 0) return "--";
+  
+  if (valorIE < 1) {
+    // Padrão normal (fisiológico)
+    return `1:${(1 / valorIE).toFixed(1)}`;
+  } else {
+    // Padrão invertido (comum nos testes de bancada)
+    return `${valorIE.toFixed(1)}:1`;
+  }
+}
+
+
 function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
   const dataHoje = new Date().toLocaleDateString('pt-BR', { 
     weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' 
@@ -293,9 +306,7 @@ function VisaoGeral({ onNavegar }: { onNavegar: (pagina: number) => void }) {
                 <div className="sessao-metrica">
                   <span className="sm-label">Razão I:E</span>
                   <span className="sm-value ok">
-                    {metricasRespiratorias.ieMedia !== null
-                      ? metricasRespiratorias.ieMedia.toFixed(2)
-                      : "--"}
+                    {formatarRazaoIE(metricasRespiratorias.ieMedia)}
                   </span>
                   <span className="sm-unit">{metricasRespiratorias.ieMedia !== null ? "estimada" : "aguardando"}</span>
                 </div>

@@ -1,5 +1,5 @@
 import "../../styles/fisioterapeuta/monitoramento.css";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react"; // ADICIONADO useRef
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Sessao,
@@ -54,14 +54,16 @@ function gerarIniciais(nome: string): string {
   return `${primeira}${segunda}`.toUpperCase();
 }
 
-function formatarRazaoIE(ieMedia: number | null): string {
-  if (ieMedia === null || ieMedia <= 0) {
-    return "--";
+function formatarRazaoIE(valorIE: number | null): string {
+  if (valorIE === null || valorIE <= 0) return "--";
+  
+  if (valorIE < 1) {
+    // Padrão normal (fisiológico)
+    return `1:${(1 / valorIE).toFixed(1)}`;
+  } else {
+    // Padrão invertido (comum nos testes de bancada)
+    return `${valorIE.toFixed(1)}:1`;
   }
-
-  const expiracao = 1 / ieMedia;
-
-  return `1:${expiracao.toFixed(1)}`;
 }
 
 function Monitoramento({ pacientePreSelecionadoId }: Props) {
@@ -98,9 +100,23 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
     encerrarSessao: encerrarSessaoContexto,
   } = useSensor();
 
-  const metricasRespiratorias = useMemo(() => {
-    return processarMetricasRespiratorias(leiturasSensor);
+  // CORREÇÃO DE DESEMPENHO: Otimização de CPU para não congelar os painéis
+  const [metricasRespiratorias, setMetricasRespiratorias] = useState(() => processarMetricasRespiratorias([]));
+  const leiturasRef = useRef(leiturasSensor);
+
+  // Mantém a referência atualizada a 20Hz silenciosamente
+  useEffect(() => {
+    leiturasRef.current = leiturasSensor;
   }, [leiturasSensor]);
+
+  // Executa a matemática pesada apenas 1 vez por segundo
+  useEffect(() => {
+    const intervaloMatematica = setInterval(() => {
+      setMetricasRespiratorias(processarMetricasRespiratorias(leiturasRef.current));
+    }, 1000);
+
+    return () => clearInterval(intervaloMatematica);
+  }, []);
 
   const duracaoSessaoAtiva = sessaoAtiva
     ? calcularDuracaoSessao(sessaoAtiva.inicio)
@@ -198,11 +214,6 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
       return false;
     }
 
-    if (!pacienteSelecionado) {
-      alert("Selecione um paciente.");
-      return false;
-    }
-
     if (!frMin || !frMax) {
       alert("Informe a faixa de frequência respiratória.");
       return false;
@@ -234,11 +245,6 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
       pressaoMinNum > pressaoMaxNum
     ) {
       alert("A pressão mínima não pode ser maior que a pressão máxima.");
-      return false;
-    }
-
-    if (!ieInspiracao || !ieExpiracao) {
-      alert("Informe a razão I:E alvo.");
       return false;
     }
 
@@ -327,23 +333,6 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
       setCarregando(false);
     }
   }
-
-  // async function iniciarTesteGraficoMqtt() {
-  //   try {
-  //     limparLeituras();
-
-  //     if (!mqttConectado) {
-  //       await conectarMqtt();
-  //     }
-
-  //     alert(
-  //       "Teste MQTT preparado. Agora execute o simulador Python para enviar leituras ao gráfico."
-  //     );
-  //   } catch (error) {
-  //     console.error("Erro ao preparar teste MQTT:", error);
-  //     alert("Não foi possível preparar o teste MQTT.");
-  //   }
-  // }
 
   async function handleRegistrarAjuste(alerta: AlertaSessao) {
     if (!usuario) {
@@ -442,22 +431,32 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
 
       const idEncerrado = sessaoAtiva.id;
 
-      const frMinAlvo = sessaoAtiva.fr_min;
-      const frMaxAlvo = sessaoAtiva.fr_max;
-      const ieInspiracaoAlvo = sessaoAtiva.ie_inspiracao;
-      const ieExpiracaoAlvo = sessaoAtiva.ie_expiracao;
+      const frMinAlvo = sessaoAtiva.fr_min ?? null;
+      const frMaxAlvo = sessaoAtiva.fr_max ?? null;
+      const ieInspiracaoAlvo = sessaoAtiva.ie_inspiracao ?? null;
+      const ieExpiracaoAlvo = sessaoAtiva.ie_expiracao ?? null;
 
+      // =========================================================================
+      // FUNÇÃO DE PROTEÇÃO: Garante que valores inválidos ou NaN virem null para o banco
+      // =========================================================================
+      const tratarNumero = (valor: any) => {
+        const num = Number(valor);
+        return Number.isNaN(num) || valor === null || valor === undefined ? null : num;
+      };
+
+      // 1. Calcula o Score usando os dados corretos (tratando possíveis nulls com ?? 0)
       const resultadoScore = calcularScoreEvolucaoSessao({
-        frMedia: metricasRespiratorias.frMedia,
+        frMedia: metricasRespiratorias.frMedia ?? 0,
         frMin: frMinAlvo,
         frMax: frMaxAlvo,
 
-        frDesvioPadrao: metricasRespiratorias.frDesvioPadrao,
+        frDesvioPadrao: metricasRespiratorias.frDesvioPadrao ?? 0,
 
-        ieMedia: metricasRespiratorias.ieMedia,
+        ieMedia: metricasRespiratorias.ieMedia ?? 0,
         ieInspiracaoAlvo,
         ieExpiracaoAlvo,
 
+        // Usando o objeto 'avaliacao' que vem do Modal
         spo2Inicial: avaliacao.spo2Inicial,
         spo2Final: avaliacao.spo2Final,
 
@@ -468,6 +467,7 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
         fcRecuperacao: avaliacao.fcRecuperacao,
       });
 
+      // 2. Salva a Avaliação Clínica
       await salvarAvaliacaoClinicaSessao({
         sessaoId: idEncerrado,
 
@@ -483,12 +483,21 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
         tempoRecuperacaoSegundos: 60,
       });
 
+      // 3. Salva as Métricas passando o objeto original intacto
       await salvarMetricasSessao({
         sessaoId: idEncerrado,
         metricas: metricasRespiratorias,
         scoreEvolucao: resultadoScore.score,
       });
 
+      // 4. Salva as Métricas
+      await salvarMetricasSessao({
+        sessaoId: idEncerrado,
+        metricas: metricasRespiratorias,
+        scoreEvolucao: tratarNumero(resultadoScore?.score),
+      });
+
+      // 5. Atualiza o status da sessão para encerrada
       await encerrarSessao(sessaoAtiva.id);
 
       limparLeituras();
@@ -503,12 +512,19 @@ function Monitoramento({ pacientePreSelecionadoId }: Props) {
 
       alert(
         `Sessão encerrada com sucesso. Score calculado: ${
-          resultadoScore.score?.toFixed(1) ?? "não disponível"
+          resultadoScore?.score !== null && resultadoScore?.score !== undefined
+            ? resultadoScore.score.toFixed(1)
+            : "não disponível"
         }`
       );
     } catch (error) {
-      console.error("Erro ao encerrar sessão com métricas:", error);
-      alert("Não foi possível salvar os dados e encerrar a sessão.");
+      console.error("Erro detalhado ao encerrar sessão:", error);
+      
+      // EXIBE O ERRO REAL NA TELA PARA DIAGNÓSTICO RÁPIDO
+      alert(
+        `Não foi possível salvar os dados e encerrar a sessão.\n\n` +
+        `Motivo técnico: ${error instanceof Error ? error.message : String(error)}`
+      );
     } finally {
       setSalvandoEncerramento(false);
     }

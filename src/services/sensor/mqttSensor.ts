@@ -67,7 +67,7 @@ export class MqttSensorClient {
                 }
 
                 // 3. Subtrai o ruído/pressão base da leitura atual
-                const pressaoRealCmH2O = pressaoBrutaCmH2O - this.taraCmH2O;
+                const pressaoRealCmH2O = this.taraCmH2O - pressaoBrutaCmH2O;
 
                 callbacks.onLeitura?.({
                     ...leitura,
@@ -89,8 +89,8 @@ export class MqttSensorClient {
                 callbacks.onMetricas?.({
                     ...metricas,
                     // Converte para cmH2O e zera as pressões do pacote de métricas do ESP32
-                    pressao: (metricas.pressao * 10.1972) - taraAtual,
-                    pressao_media: (metricas.pressao_media * 10.1972) - taraAtual,
+                    pressao: taraAtual - (metricas.pressao * 10.1972),
+                    pressao_media: taraAtual - (metricas.pressao_media * 10.1972),
                 });
             }
         );
