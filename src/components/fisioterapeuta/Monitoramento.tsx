@@ -1,5 +1,5 @@
 import "../../styles/fisioterapeuta/monitoramento.css";
-import { useEffect, useState, useMemo, useRef } from "react"; // ADICIONADO useRef
+import { useEffect, useState, useRef } from "react"; // ADICIONADO useRef
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Sessao,
